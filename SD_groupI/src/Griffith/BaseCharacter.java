@@ -30,7 +30,6 @@ public abstract class BaseCharacter {
 	 * Boss Attack: 19-30 Damage
 	 */
 	public int calculateAttack() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 }
