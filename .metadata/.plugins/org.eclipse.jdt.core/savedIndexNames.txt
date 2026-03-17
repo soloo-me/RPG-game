@@ -1,4 +1,0 @@
-INDEX VERSION 1.131+/Users/kellismugisha/sd2_project_groupi/.metadata/.plugins/org.eclipse.jdt.core
-1619481662.index
-1865797976.index
-3924449712.index
