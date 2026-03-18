@@ -2,15 +2,10 @@ package Griffith;
 
 public class Mage extends BaseCharacter {
     private int mana;
-    private int intelligence;
     private static final int DAMAGE_THRESHOLD = 25;
 
     public Mage(String name) {
-        super(name);
-        // Random HP between 125-150
-        this.health = 125 + (int)(Math.random() * 26);
-        this.attackPower = 40;
-        this.intelligence = 75;
+        super(name, 125 + (int)(Math.random() * 26), 50, 80, 100, 50);
         this.mana = 100;
     }
 
@@ -28,12 +23,24 @@ public class Mage extends BaseCharacter {
     }
 
     public void castSpell(String spell) {
-        System.out.println(name + " casts " + spell + " with " + intelligence + " intelligence!");
-        int spellDamage = attackPower + (intelligence / 2);
-        System.out.println("Spell deals " + spellDamage + " damage!");
+    	int manaCost = 20;
+    	
+    	if (mana < manaCost) {
+    		System.out.println(name + " does not have enough mana!");
+    		return;
+    	}
+    	mana -= manaCost;
+    	
+    	System.out.println(name + " casts " + spell + " with " + intellect + " intelligence!");
+    	int spellDamage = attack + (intellect /2);
+    	System.out.println("Spell deals " + spellDamage + " damage!");
+    	
     }
 
+    public int getMana() {
+    	return mana;
+    }
     public int getIntelligence() {
-        return intelligence;
+        return intellect;
     }
 }
