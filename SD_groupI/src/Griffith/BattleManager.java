@@ -11,12 +11,23 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.application.Platform;
+
 
 public class BattleManager {
 
     private BaseCharacter player;
     private BaseCharacter enemy;
 
+    private Runnable returnToMenuAction;
+
+    
+    public void setReturnToMenuAction(Runnable action) {
+        this.returnToMenuAction = action;
+    }
+    
     private boolean gameStarted = false;
     private boolean gamePaused = false;
     private boolean playerTurn = true;
@@ -30,6 +41,31 @@ public class BattleManager {
     private Label enemyHpLabel = new Label();
     private Label battleInfoLabel = new Label("Press Start Game, choose a character, and begin.");
 
+    private void showEndGameScreen(boolean isVictory) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Game Over");
+        alert.setHeaderText(isVictory ? "Victory!" : "Defeat!");
+        alert.setContentText(isVictory ? "You defeated the boss! Play again?" : "You have fallen. Try again?");
+
+       
+        ButtonType yesButton = new ButtonType("Yes");
+        ButtonType noButton = new ButtonType("No");
+        alert.getButtonTypes().setAll(yesButton, noButton);
+
+        
+        alert.showAndWait().ifPresent(type -> {
+            if (type == yesButton) {
+                
+            if (returnToMenuAction != null) {
+                    returnToMenuAction.run();
+                }
+            } else {
+                
+                Platform.exit();
+            }
+        });
+    }
+    
     public Scene createBattleScene(Runnable pauseAction) {
         Label title = new Label("Battle");
         title.setFont(Font.font(28));
@@ -145,6 +181,8 @@ public class BattleManager {
         if (!enemy.isAlive()) {
             battleInfoLabel.setText(player.getName() + " defeated the boss. You win!");
             gameStarted = false;
+            
+            showEndGameScreen(true); 
             return;
         }
 
@@ -190,6 +228,8 @@ public class BattleManager {
         if (!player.isAlive()) {
             battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + player.getName() + " has fallen. Game over.");
             gameStarted = false;
+            
+            showEndGameScreen(false);
             return;
         }
 

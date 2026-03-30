@@ -39,6 +39,10 @@ public class GameMenu extends Application {
         settingsScene = createSettingsScene();
         battleScene = battleManager.createBattleScene(this::pauseGame);
         pauseScene = createPauseScene();
+        
+        battleManager.setReturnToMenuAction(() -> {
+            window.setScene(mainMenuScene);
+        });
 
         window.setScene(mainMenuScene);
         window.setWidth(1000);
