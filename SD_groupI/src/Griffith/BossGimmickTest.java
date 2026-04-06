@@ -51,4 +51,58 @@ public class BossGimmickTest {
                 "Reduction failed for " + hero.getClass().getSimpleName());
         }
     }
-}
+    
+        //Mage Tests
+        @Test
+        @DisplayName("Mage Test: Damage below threshold should be applied")
+        void testMageTakesLowDamage() {
+            int hpBefore = mage.getHp();
+            
+            mage.takeDamage(20); // below threshold (25)
+
+            int hpAfter = mage.getHp();
+
+            assertTrue(hpAfter < hpBefore, "Mage should take damage when below threshold.");
+        }
+
+        @Test
+        @DisplayName("Mage Test: Damage above threshold should be ignored")
+        void testMageIgnoresHighDamage() {
+            int hpBefore = mage.getHp();
+            
+            mage.takeDamage(40); // above threshold
+
+            int hpAfter = mage.getHp();
+
+            assertEquals(hpBefore, hpAfter, "Mage should ignore damage above threshold.");
+        }
+
+        @Test
+        @DisplayName("Mage Test: Casting spell reduces mana")
+        void testMageManaReduction() {
+            int manaBefore = mage.getMana();
+
+            mage.castSpell("Fireball");
+
+            int manaAfter = mage.getMana();
+
+            assertEquals(manaBefore - 20, manaAfter, "Casting a spell should reduce mana by 20.");
+        }
+
+        @Test
+        @DisplayName("Mage Test: Cannot cast spell without enough mana")
+        void testMageNotEnoughMana() {
+            // Drain mana
+            for (int i = 0; i < 6; i++) {
+                mage.castSpell("Spam Spell");
+            }
+
+            int manaBefore = mage.getMana();
+
+            mage.castSpell("Final Spell"); // should fail
+
+            int manaAfter = mage.getMana();
+
+            assertEquals(manaBefore, manaAfter, "Mana should not change if spell cannot be cast.");
+        }
+    }

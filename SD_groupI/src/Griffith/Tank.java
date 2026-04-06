@@ -1,3 +1,5 @@
+package Griffith;
+
 import java.util.Random;
 
 public class Tank extends BaseCharacter {
