@@ -157,5 +157,74 @@ public class CharacterTest {
             assertEquals(hpBefore - 28, archer.getHp(),
                     "Archer should take damage above 27.");
         }
+        
+     // Tank tests
+        @Test
+        @DisplayName("Tank Test: Heavy attack reduces stamina by 25")
+        void testTankAttackConsumesStamina() {
+            int staminaBefore = tank.getStamina();
+            
+            tank.performAttackAction();
+            
+            int staminaAfter = tank.getStamina();
+            assertEquals(staminaBefore - 25, staminaAfter, "Tank should lose 25 stamina per attack.");
+        }
+
+        @Test
+        @DisplayName("Tank Test: Cannot attack with insufficient stamina")
+        void testTankCannotAttackWithoutStamina() {
+            // Tank starts with 120. 4 attacks = 100 stamina used. 20 remaining.
+            // 5th attack requires 25, so it should fail.
+            for (int i = 0; i < 4; i++) {
+                tank.performAttackAction();
+            }
+            
+            int damage = tank.performAttackAction();
+            
+            assertEquals(0, damage, "Tank should deal 0 damage when stamina is below 25.");
+        }
+
+        @Test
+        @DisplayName("Tank Test: Absorbs (ignores) damage greater than 25")
+        void testTankAbsorbsHighDamage() {
+            int hpBefore = tank.getHp();
+            
+            // Tank logic: if incomingDamage > 25, take 0 damage
+            tank.takeDamage(30); 
+            
+            assertEquals(hpBefore, tank.getHp(), "Tank should ignore hits greater than 25.");
+        }
+
+        @Test
+        @DisplayName("Tank Test: Takes normal damage if 25 or less")
+        void testTankTakesLowDamage() {
+            int hpBefore = tank.getHp();
+            int damageAmount = 20;
+            
+            tank.takeDamage(damageAmount);
+            
+            assertEquals(hpBefore - damageAmount, tank.getHp(), "Tank should take full damage if hit is 25 or less.");
+        }
+
+        @Test
+        @DisplayName("Tank Test: Stamina regeneration increases current stamina")
+        void testTankRegenerateStamina() {
+            // Reduce stamina first
+            tank.performAttackAction(); // 120 -> 95
+            int staminaAfterAttack = tank.getStamina();
+            
+            tank.regenerateStamina(); // 95 + 15 = 110
+            
+            assertEquals(staminaAfterAttack + 15, tank.getStamina(), "Tank should regenerate 15 stamina.");
+        }
+
+        @Test
+        @DisplayName("Tank Test: Stamina regeneration caps at 120")
+        void testTankStaminaCap() {
+            // Tank is already at 120 (Max)
+            tank.regenerateStamina();
+            
+            assertEquals(120, tank.getStamina(), "Tank stamina should not exceed MAX_STAMINA (120).");
+        }
 
     }
