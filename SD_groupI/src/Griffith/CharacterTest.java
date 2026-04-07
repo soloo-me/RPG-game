@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 
-public class BossGimmickTest {
+public class CharacterTest {
     private boss gorgon;
     private Archer archer;
     private Brawler brawler;
@@ -52,9 +52,10 @@ public class BossGimmickTest {
         }
     }
     
-        //Mage Tests
-        @Test
-        @DisplayName("Mage Test: Damage below threshold should be applied")
+    
+    //Mage Tests
+    @Test
+    @DisplayName("Mage Test: Damage below threshold should be applied")
         void testMageTakesLowDamage() {
             int hpBefore = mage.getHp();
             
@@ -105,4 +106,56 @@ public class BossGimmickTest {
 
             assertEquals(manaBefore, manaAfter, "Mana should not change if spell cannot be cast.");
         }
+        
+      //Archer Tests
+        @Test
+        @DisplayName("Archer attack uses 20 stamina")
+        void testArcherAttackConsumesStamina() {
+            int staminaBefore = archer.getStamina();
+
+            archer.performAttackAction();
+
+            //verifies that stamina decreases by exactly 20
+            assertEquals(staminaBefore - 20, archer.getStamina(),
+                    "Archer should lose 20 stamina when attacking.");
+        }
+
+        @Test
+        @DisplayName("Archer cannot attack without enough stamina")
+        void testArcherCannotAttackWithoutStamina() {
+        	//keeps attacking until the archer runs out of stamina
+        	//loop checks if there is enough stamina for another attack
+            while (archer.hasEnoughStamina(20)) {
+                archer.performAttackAction();
+            }
+
+            //after stamina is depleted, attacking returns 0 damage
+            assertEquals(0, archer.performAttackAction(),
+                    "Archer should deal 0 damage when out of stamina.");
+        }
+
+        @Test
+        @DisplayName("Archer evades damage of 27 or less")
+        void testArcherEvadesLowDamage() {
+            int hpBefore = archer.getHp();
+
+            archer.takeDamage(27);
+            
+            //verify that hp hasn't changed(hence the attack has been evaded)
+            assertEquals(hpBefore, archer.getHp(),
+                    "Archer should evade attacks of 27 or less.");
+        }
+
+        @Test
+        @DisplayName("Archer takes damage above 27")
+        void testArcherTakesHighDamage() {
+            int hpBefore = archer.getHp();
+
+            archer.takeDamage(28);
+
+            //verifies that HP has decreased by the full damage amount when damage is above 28
+            assertEquals(hpBefore - 28, archer.getHp(),
+                    "Archer should take damage above 27.");
+        }
+
     }
