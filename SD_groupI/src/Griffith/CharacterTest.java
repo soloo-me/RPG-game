@@ -226,5 +226,5 @@ public class CharacterTest {
             
             assertEquals(120, tank.getStamina(), "Tank stamina should not exceed MAX_STAMINA (120).");
         }
-
+      
     }
