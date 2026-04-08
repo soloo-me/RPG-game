@@ -52,4 +52,7 @@ public abstract class BaseCharacter {
     public void setHp(int hp) {
         this.hp = Math.max(0, hp);
     }
+    public void setStamina(int stamina) {
+        this.stamina = stamina;
+    }
 }
