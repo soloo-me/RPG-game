@@ -226,5 +226,40 @@ public class CharacterTest {
             
             assertEquals(120, tank.getStamina(), "Tank stamina should not exceed MAX_STAMINA (120).");
         }
+     // Brawler Tests
+
+        @Test
+        @DisplayName("Brawler Test: Attack is within normal range (17–25 or crit 34–50)")
+        void testBrawlerAttackRange() {
+            int attack = brawler.calculateAttack();
+
+            boolean isNormal = (attack >= 17 && attack <= 25);
+            boolean isCritical = (attack >= 34 && attack <= 50);
+
+            assertTrue(isNormal || isCritical,
+                "Brawler attack should be between 17–25 or 34–50 on crit.");
+        }
+
+        @Test
+        @DisplayName("Brawler Test: Stamina regeneration increases stamina by 25")
+        void testBrawlerRegenerateStamina() {
+            // Manually reduce stamina
+            brawler.setStamina(150);
+
+            brawler.regenerateStamina();
+
+            assertEquals(175, brawler.getStamina(),
+                "Brawler should regenerate 25 stamina.");
+        }
+
+        @Test
+        @DisplayName("Brawler Test: Stamina should not exceed 200")
+        void testBrawlerStaminaCap() {
+            // Already at max stamina (200)
+            brawler.regenerateStamina();
+
+            assertEquals(200, brawler.getStamina(),
+                "Brawler stamina should not exceed 200.");
+        }
       
     }
