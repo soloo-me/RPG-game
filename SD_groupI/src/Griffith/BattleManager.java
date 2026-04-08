@@ -86,22 +86,33 @@ public class BattleManager {
         Pane battlePane = new Pane(); 
 
         ImageView background = new ImageView(new Image("file:pictures/Game_Background.png")); 
-        background.setFitWidth(1000);
-        background.setFitHeight(650);
+        background.setPreserveRatio(false);
+        background.fitWidthProperty().bind(battlePane.widthProperty());
+        background.fitHeightProperty().bind(battlePane.heightProperty());
         
         player1Sprite = new ImageView(); 
         player2Sprite = new ImageView(); 
         bossSprite = new ImageView(); 
+        
+     //Scale images
+        player1Sprite.setPreserveRatio(true);
+        player1Sprite.setFitWidth(200);
+
+        player2Sprite.setPreserveRatio(true);
+        player2Sprite.setFitWidth(200);
+
+        bossSprite.setPreserveRatio(true);
+        bossSprite.setFitWidth(300);
 
         // positions
-        player1Sprite.setLayoutX(120);
-        player1Sprite.setLayoutY(400);
+        player1Sprite.setLayoutX(150);
+        player1Sprite.setLayoutY(300);
 
-        player2Sprite.setLayoutX(250);
-        player2Sprite.setLayoutY(420);
+        player2Sprite.setLayoutX(400);
+        player2Sprite.setLayoutY(3000);
 
-        bossSprite.setLayoutX(650);
-        bossSprite.setLayoutY(200);
+        bossSprite.setLayoutX(700);
+        bossSprite.setLayoutY(1500);
 
         battlePane.getChildren().addAll(background, bossSprite, player1Sprite, player2Sprite);
 
@@ -373,16 +384,16 @@ public class BattleManager {
     }
     private Image getSpriteForCharacter(BaseCharacter character) {
         if (character instanceof Archer) {
-            return new Image("file:pictures/Archer.pn"); //file name spelling errors on purpose because we still need to work on the character images
+            return new Image("file:pictures/Archer.png"); //file name spelling errors on purpose because we still need to work on the character images
         }
         if (character instanceof Brawler) {
-            return new Image("file:pictures/Brawler.pn");  //when i run the characters are not where they should be
+            return new Image("file:pictures/Brawler.png");  //when i run the characters are not where they should be
         }
         if (character instanceof Mage) {
-            return new Image("file:pictures/Mage.pn");
+            return new Image("file:pictures/Mage.png");
         }
         if (character instanceof Tank) {
-            return new Image("file:pictures/Tank.pn");
+            return new Image("file:pictures/Tank.png");
         }
 
         return null;
