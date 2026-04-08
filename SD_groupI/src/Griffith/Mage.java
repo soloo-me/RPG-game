@@ -43,4 +43,11 @@ public class Mage extends BaseCharacter {
     public int getIntelligence() {
         return intellect;
     }
+    
+    @Override
+    public int calculateAttack() {
+        int damage = attack + (intellect / 2);
+        System.out.println(name + " deals " + damage + " magic damage!");
+        return damage;
+    }
 }
