@@ -18,8 +18,9 @@ import javafx.application.Platform;
 
 public class BattleManager {
 
-    private BaseCharacter player;
+    private BaseCharacter[] players = new BaseCharacter[2];
     private BaseCharacter enemy;
+    private int currentPlayerIndex = 0;
 
     private Runnable returnToMenuAction;
 
@@ -32,12 +33,15 @@ public class BattleManager {
     private boolean gamePaused = false;
     private boolean playerTurn = true;
 
-    private int playerMaxHp;
+    private int[] playerMaxHp = new int[2];
     private int enemyMaxHp;
 
-    private ProgressBar playerHpBar = new ProgressBar(1.0);
+    private ProgressBar player1HpBar = new ProgressBar(1.0);
+    private ProgressBar player2HpBar = new ProgressBar(1.0);
     private ProgressBar enemyHpBar = new ProgressBar(1.0);
-    private Label playerHpLabel = new Label();
+    
+    private Label player1HpLabel = new Label();
+    private Label player2HpLabel = new Label();
     private Label enemyHpLabel = new Label();
     private Label battleInfoLabel = new Label("Press Start Game, choose a character, and begin.");
 
@@ -70,14 +74,23 @@ public class BattleManager {
         Label title = new Label("Battle");
         title.setFont(Font.font(28));
 
-        VBox playerBox = new VBox(10,
+        VBox player1Box = new VBox(10,
                 new Label("Player"),
-                playerHpBar,
-                playerHpLabel
+                player1HpBar,
+                player1HpLabel
         );
-        playerBox.setAlignment(Pos.CENTER);
-        playerBox.setPadding(new Insets(15));
-        playerBox.setStyle("-fx-border-color: green; -fx-border-width: 2;");
+        player1Box.setAlignment(Pos.CENTER);
+        player1Box.setPadding(new Insets(15));
+        player1Box.setStyle("-fx-border-color: green; -fx-border-width: 2;");
+
+        VBox player2Box = new VBox(10, 
+                new Label("Player 2"), 
+                player2HpBar, 
+                player2HpLabel 
+        );
+        player2Box.setAlignment(Pos.CENTER); 
+        player2Box.setPadding(new Insets(15)); 
+        player2Box.setStyle("-fx-border-color: dodgerblue; -fx-border-width: 2;"); // CHANGED
 
         VBox enemyBox = new VBox(10,
                 new Label("Enemy Boss"),
@@ -88,14 +101,14 @@ public class BattleManager {
         enemyBox.setPadding(new Insets(15));
         enemyBox.setStyle("-fx-border-color: darkred; -fx-border-width: 2;");
 
-        HBox topBars = new HBox(40, playerBox, enemyBox);
+        HBox topBars = new HBox(25, player1Box, player2Box, enemyBox);
         topBars.setAlignment(Pos.CENTER);
 
         Label controls = new Label("Battle controls: A = Attack | H = Heal | P or ESC = Pause");
         controls.setTextFill(Color.DARKBLUE);
 
         battleInfoLabel.setWrapText(true);
-        battleInfoLabel.setPrefWidth(500);
+        battleInfoLabel.setPrefWidth(650);
         battleInfoLabel.setFont(Font.font(16));
 
         VBox centerBox = new VBox(18, title, topBars, controls, battleInfoLabel);
@@ -108,7 +121,7 @@ public class BattleManager {
         Scene scene = new Scene(root, 1000, 650);
 
         scene.setOnKeyPressed(event -> {
-            if (!gameStarted || gamePaused || player == null || enemy == null) {
+            if (!gameStarted || gamePaused || players[0] == null || enemy == null) {
                 if (event.getCode() == KeyCode.P || event.getCode() == KeyCode.ESCAPE) {
                     pauseAction.run();
                 }
@@ -126,18 +139,21 @@ public class BattleManager {
         return scene;
     }
 
-    public void startBattle(BaseCharacter selectedCharacter) {
-        this.player = cloneCharacter(selectedCharacter);
+    public void startBattle(BaseCharacter selectedCharacter1, BaseCharacter selectedCharacter2) {
+        this.players[0] = cloneCharacter(selectedCharacter1);
+        this.players[1] = cloneCharacter(selectedCharacter2);
         this.enemy = new boss("Gorgon");
 
-        this.playerMaxHp = player.getHp();
+        this.playerMaxHp[0] = players[0].getHp();
+        this.playerMaxHp[1] = players[1].getHp();
         this.enemyMaxHp = enemy.getHp();
 
         this.gameStarted = true;
         this.gamePaused = false;
         this.playerTurn = true;
+        this.currentPlayerIndex = 0;
 
-        battleInfoLabel.setText(player.getName() + " enters the battle against " + enemy.getName() + ". Press A to attack.");
+        battleInfoLabel.setText(players[0].getName() +" and " + players[1].getName() + " enters the battle against " + enemy.getName() + ".\n" + players[currentPlayerIndex].getName() + "'s turn. Press A to attack.");
         updateBattleUi();
     }
 
@@ -169,25 +185,31 @@ public class BattleManager {
         if (!playerTurn) {
             return;
         }
+        BaseCharacter currentPlayer = players[currentPlayerIndex]; 
 
-        int damage = player.calculateAttack();
+        if (currentPlayer == null || !currentPlayer.isAlive()) { 
+            nextTurnAfterPlayerAction(); 
+            return;
+        }
+    
+
+        int damage = currentPlayer.calculateAttack();
         int before = enemy.getHp();
         enemy.takeDamage(damage);
         int dealt = before - enemy.getHp();
 
-        battleInfoLabel.setText(player.getName() + " attacks for " + dealt + " damage.");
+        battleInfoLabel.setText(currentPlayer.getName() + " attacks for " + dealt + " damage.");
         updateBattleUi();
 
         if (!enemy.isAlive()) {
-            battleInfoLabel.setText(player.getName() + " defeated the boss. You win!");
+            battleInfoLabel.setText(currentPlayer.getName() + " defeated the boss. You win!");
             gameStarted = false;
             
             showEndGameScreen(true); 
             return;
         }
 
-        playerTurn = false;
-        enemyTurn();
+        nextTurnAfterPlayerAction();
     }
 
     private void playerHeal() {
@@ -195,38 +217,67 @@ public class BattleManager {
             return;
         }
 
+        BaseCharacter currentPlayer = players[currentPlayerIndex]; 
         int healAmount = 18;
-        int newHp = Math.min(playerMaxHp, player.getHp() + healAmount);
-        int actualHeal = newHp - player.getHp();
-        player.setHp(newHp);
 
-        battleInfoLabel.setText(player.getName() + " heals for " + actualHeal + " HP.");
+        int newHp = Math.min(playerMaxHp[currentPlayerIndex], currentPlayer.getHp() + healAmount); 
+        int actualHeal = newHp - currentPlayer.getHp();
+        currentPlayer.setHp(newHp); 
+
+        battleInfoLabel.setText(currentPlayer.getName() + " heals for " + actualHeal + " HP."); 
         updateBattleUi();
 
-        playerTurn = false;
-        enemyTurn();
+        nextTurnAfterPlayerAction(); 
     }
+    private void nextTurnAfterPlayerAction() { 
+        if (!anyPlayerAlive()) { 
+            battleInfoLabel.setText("Both heroes have fallen. Game over."); 
+            gameStarted = false; 
+            showEndGameScreen(false); 
+            return; 
+        }
 
+        if (currentPlayerIndex == 0) { 
+            if (players[1] != null && players[1].isAlive()) { 
+                currentPlayerIndex = 1; 
+                battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + players[1].getName() + "'s turn."); 
+            } else { 
+                playerTurn = false; 
+                enemyTurn();
+            }
+        } else { 
+            playerTurn = false; 
+            enemyTurn(); 
+        }
+    }
+    
     private void enemyTurn() {
-        if (!enemy.isAlive() || !player.isAlive()) {
+        if (!enemy.isAlive() || !anyPlayerAlive()) {
             return;
+        }
+        BaseCharacter target = chooseBossTarget(); 
+        if (target == null) { 
+            battleInfoLabel.setText("Both heroes have fallen. Game over."); 
+            gameStarted = false;
+            showEndGameScreen(false);
+            return; 
         }
 
         int damage = enemy.calculateAttack();
-        int before = player.getHp();
-        player.takeDamage(damage);
-        int dealt = before - player.getHp();
+        int before = target.getHp();
+        target.takeDamage(damage);
+        int dealt = before - target.getHp();
 
         if (dealt <= 0) {
-            battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + enemy.getName() + " attacks, but it deals no damage.");
+            battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + enemy.getName() + " attacks " + target.getName() + ", but it deals no damage.");
         } else {
-            battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + enemy.getName() + " hits back for " + dealt + " damage.");
+            battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + enemy.getName() + " hits " + target.getName() + " back for " + dealt + " damage.");
         }
 
         updateBattleUi();
 
-        if (!player.isAlive()) {
-            battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + player.getName() + " has fallen. Game over.");
+        if (!anyPlayerAlive()) {
+            battleInfoLabel.setText(battleInfoLabel.getText() + "\nBoth heroes have fallen. Game over.");
             gameStarted = false;
             
             showEndGameScreen(false);
@@ -234,18 +285,54 @@ public class BattleManager {
         }
 
         playerTurn = true;
+        currentPlayerIndex = players[0].isAlive() ? 0 : 1;
+        battleInfoLabel.setText(
+                battleInfoLabel.getText() + "\n" +
+                players[currentPlayerIndex].getName() + "'s turn."
+        ); 
+    }
+    private BaseCharacter chooseBossTarget() {
+        boolean p1Alive = players[0] != null && players[0].isAlive();
+        boolean p2Alive = players[1] != null && players[1].isAlive();
+
+        if (p1Alive && p2Alive) {
+            return Math.random() < 0.5 ? players[0] : players[1];
+        } else if (p1Alive) { 
+            return players[0];
+        } else if (p2Alive) { 
+            return players[1];
+        }
+
+        return null;
+    }
+
+    private boolean anyPlayerAlive() {
+        return (players[0] != null && players[0].isAlive()) ||
+               (players[1] != null && players[1].isAlive());
     }
 
     private void updateBattleUi() {
-        if (player != null) {
-            playerHpBar.setProgress((double) player.getHp() / playerMaxHp);
-            playerHpLabel.setText(player.getName() + " HP: " + player.getHp() + " / " + playerMaxHp);
+        if (players[0] != null) {
+            player1HpBar.setProgress((double) players[0].getHp() / playerMaxHp[0]);
+            player1HpLabel.setText(players[0].getName() + " HP: " + players[0].getHp() + " / " + playerMaxHp[0]); 
+        } else { 
+            player1HpBar.setProgress(0);
+            player1HpLabel.setText("Player 1 not selected");
+        }
+
+        if (players[1] != null) {
+            player2HpBar.setProgress((double) players[1].getHp() / playerMaxHp[1]);
+            player2HpLabel.setText(players[1].getName() + " HP: " + players[1].getHp() + " / " + playerMaxHp[1]);
+        } else { 
+            player2HpBar.setProgress(0);
+            player2HpLabel.setText("Player 2 not selected"); 
         }
 
         if (enemy != null) {
             enemyHpBar.setProgress((double) enemy.getHp() / enemyMaxHp);
             enemyHpLabel.setText(enemy.getName() + " HP: " + enemy.getHp() + " / " + enemyMaxHp);
         }
+    
     }
 
     private BaseCharacter cloneCharacter(BaseCharacter character) {

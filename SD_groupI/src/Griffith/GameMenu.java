@@ -22,7 +22,8 @@ public class GameMenu extends Application {
     private double volume = 0.5;
     private boolean musicOn = true;
 
-    private BaseCharacter selectedCharacter;
+    private BaseCharacter selectedCharacter1;
+    private BaseCharacter selectedCharacter2;
 
     private Label selectedNameLabel = new Label("No character selected");
     private Label statsLabel = new Label("Stats will appear here");
@@ -128,11 +129,11 @@ public class GameMenu extends Application {
         Button backBtn = new Button("Back");
 
         confirmBtn.setOnAction(e -> {
-            if (selectedCharacter == null) {
-                showAlert("Select a character first.");
+            if (selectedCharacter1 == null || selectedCharacter2 == null) {
+                showAlert("Select 2 characters first.");
                 return;
             }
-            battleManager.startBattle(selectedCharacter);
+            battleManager.startBattle(selectedCharacter1, selectedCharacter2);
             window.setScene(battleScene);
             battleScene.getRoot().requestFocus();
         });
@@ -156,8 +157,8 @@ public class GameMenu extends Application {
             if (event.getCode() == KeyCode.ESCAPE) {
                 window.setScene(mainMenuScene);
             }
-            if (event.getCode() == KeyCode.ENTER && selectedCharacter != null) {
-                battleManager.startBattle(selectedCharacter);
+            if (event.getCode() == KeyCode.ENTER && selectedCharacter1 != null && selectedCharacter2 != null) {
+                battleManager.startBattle(selectedCharacter1, selectedCharacter2);
                 window.setScene(battleScene);
                 battleScene.getRoot().requestFocus();
             }
@@ -175,11 +176,22 @@ public class GameMenu extends Application {
 
         Button selectBtn = new Button("Select");
         selectBtn.setOnAction(e -> {
-            selectedCharacter = character;
-            selectedNameLabel.setText("Selected: " + selectedCharacter.getName());
-            statsLabel.setText(buildStatsText(selectedCharacter));
+        	if(selectedCharacter1 == null) {
+        		selectedCharacter1 = character;
+        	}
+        	else if (selectedCharacter2 == null) {
+        		selectedCharacter2 = character;
+        	}else {
+        		showAlert("You already selected 2 characters.");
+        		return;
+        	}
+        	String player1Name = (selectedCharacter1 == null) ? "None" : selectedCharacter1.getName();
+        	String player2Name = (selectedCharacter2 == null) ? "None" : selectedCharacter2.getName();
+        	
+        	selectedNameLabel.setText("Player 1: " + player1Name + " | Player 2: " + player2Name); // CHANGED
+            statsLabel.setText(buildStatsText(character));
         });
-
+        
         VBox card = new VBox(10, nameLabel, hp, atk, selectBtn);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(20));
