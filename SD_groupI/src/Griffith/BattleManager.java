@@ -8,12 +8,17 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.application.Platform;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
 
 
 public class BattleManager {
@@ -45,6 +50,10 @@ public class BattleManager {
     private Label enemyHpLabel = new Label();
     private Label battleInfoLabel = new Label("Press Start Game, choose a character, and begin.");
 
+    private ImageView player1Sprite;
+    private ImageView player2Sprite; 
+    private ImageView bossSprite; 
+    
     private void showEndGameScreen(boolean isVictory) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Game Over");
@@ -73,6 +82,28 @@ public class BattleManager {
     public Scene createBattleScene(Runnable pauseAction) {
         Label title = new Label("Battle");
         title.setFont(Font.font(28));
+        
+        Pane battlePane = new Pane(); 
+
+        ImageView background = new ImageView(new Image("file:pictures/Game_Background.png")); 
+        background.setFitWidth(1000);
+        background.setFitHeight(650);
+        
+        player1Sprite = new ImageView(); 
+        player2Sprite = new ImageView(); 
+        bossSprite = new ImageView(); 
+
+        // positions
+        player1Sprite.setLayoutX(120);
+        player1Sprite.setLayoutY(400);
+
+        player2Sprite.setLayoutX(250);
+        player2Sprite.setLayoutY(420);
+
+        bossSprite.setLayoutX(650);
+        bossSprite.setLayoutY(200);
+
+        battlePane.getChildren().addAll(background, bossSprite, player1Sprite, player2Sprite);
 
         VBox player1Box = new VBox(10,
                 new Label("Player"),
@@ -90,7 +121,7 @@ public class BattleManager {
         );
         player2Box.setAlignment(Pos.CENTER); 
         player2Box.setPadding(new Insets(15)); 
-        player2Box.setStyle("-fx-border-color: dodgerblue; -fx-border-width: 2;"); // CHANGED
+        player2Box.setStyle("-fx-border-color: dodgerblue; -fx-border-width: 2;"); 
 
         VBox enemyBox = new VBox(10,
                 new Label("Enemy Boss"),
@@ -116,12 +147,12 @@ public class BattleManager {
         centerBox.setPadding(new Insets(25));
 
         BorderPane root = new BorderPane();
-        root.setCenter(centerBox);
+        root.setCenter(new StackPane(battlePane,centerBox));
 
         Scene scene = new Scene(root, 1000, 650);
 
         scene.setOnKeyPressed(event -> {
-            if (!gameStarted || gamePaused || players[0] == null || enemy == null) {
+            if (!gameStarted || gamePaused || players[0] == null || enemy == null || players[1] == null) {
                 if (event.getCode() == KeyCode.P || event.getCode() == KeyCode.ESCAPE) {
                     pauseAction.run();
                 }
@@ -138,6 +169,7 @@ public class BattleManager {
 
         return scene;
     }
+    
 
     public void startBattle(BaseCharacter selectedCharacter1, BaseCharacter selectedCharacter2) {
         this.players[0] = cloneCharacter(selectedCharacter1);
@@ -154,6 +186,11 @@ public class BattleManager {
         this.currentPlayerIndex = 0;
 
         battleInfoLabel.setText(players[0].getName() +" and " + players[1].getName() + " enters the battle against " + enemy.getName() + ".\n" + players[currentPlayerIndex].getName() + "'s turn. Press A to attack.");
+        
+        player1Sprite.setImage(getSpriteForCharacter(players[0]));
+        player2Sprite.setImage(getSpriteForCharacter(players[1]));
+        bossSprite.setImage(new Image("file:pictures/Boss.pn")); //file name spelling error on purpose because image isn't where it's supposed to be when you run it
+        
         updateBattleUi();
     }
 
@@ -333,6 +370,22 @@ public class BattleManager {
             enemyHpLabel.setText(enemy.getName() + " HP: " + enemy.getHp() + " / " + enemyMaxHp);
         }
     
+    }
+    private Image getSpriteForCharacter(BaseCharacter character) {
+        if (character instanceof Archer) {
+            return new Image("file:pictures/Archer.pn"); //file name spelling errors on purpose because we still need to work on the character images
+        }
+        if (character instanceof Brawler) {
+            return new Image("file:pictures/Brawler.pn");  //when i run the characters are not where they should be
+        }
+        if (character instanceof Mage) {
+            return new Image("file:pictures/Mage.pn");
+        }
+        if (character instanceof Tank) {
+            return new Image("file:pictures/Tank.pn");
+        }
+
+        return null;
     }
 
     private BaseCharacter cloneCharacter(BaseCharacter character) {
