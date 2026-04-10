@@ -42,7 +42,16 @@ public class GameMenu extends Application {
         pauseScene = createPauseScene();
         
         battleManager.setReturnToMenuAction(() -> {
-            window.setScene(mainMenuScene);
+        // 1. Clear the old character selections
+        selectedCharacter1 = null;
+        selectedCharacter2 = null;
+                
+        // 2. Reset the labels on the selection screen
+        selectedNameLabel.setText("No character selected");
+        statsLabel.setText("Stats will appear here");
+
+        // 3. Move the window back to the character selection screen
+        window.setScene(characterSelectScene);
         });
 
         window.setScene(mainMenuScene);
