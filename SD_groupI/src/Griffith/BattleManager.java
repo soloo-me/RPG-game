@@ -107,17 +107,17 @@ public class BattleManager {
         player2Sprite.setFitWidth(200);
 
         bossSprite.setPreserveRatio(true);
-        bossSprite.setFitWidth(300);
+        bossSprite.setFitWidth(450);
 
         // positions
-        player1Sprite.setLayoutX(150);
+        player1Sprite.setLayoutX(450);
         player1Sprite.setLayoutY(300);
 
-        player2Sprite.setLayoutX(400);
-        player2Sprite.setLayoutY(3000);
+        player2Sprite.setLayoutX(600);
+        player2Sprite.setLayoutY(230);
 
-        bossSprite.setLayoutX(700);
-        bossSprite.setLayoutY(1500);
+        bossSprite.setLayoutX(915);
+        bossSprite.setLayoutY(-70);
 
         battlePane.getChildren().addAll(background, bossSprite, player1Sprite, player2Sprite);
 
@@ -213,7 +213,9 @@ public class BattleManager {
         
         player1Sprite.setImage(getSpriteForCharacter(players[0]));
         player2Sprite.setImage(getSpriteForCharacter(players[1]));
-        bossSprite.setImage(new Image("file:pictures/Boss.pn")); //file name spelling error on purpose because image isn't where it's supposed to be when you run it
+        bossSprite.setImage(new Image("file:pictures/Boss.png")); //file name spelling error on purpose because image isn't where it's supposed to be when you run it
+        bossSprite.setScaleX(-1);
+        bossSprite.setRotate(-10);
         
         updateBattleUi();
     }
