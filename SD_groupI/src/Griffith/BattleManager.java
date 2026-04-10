@@ -39,14 +39,19 @@ public class BattleManager {
     private boolean playerTurn = true;
 
     private int[] playerMaxHp = new int[2];
+    private int[] playerMaxStamina = new int[2];
     private int enemyMaxHp;
 
     private ProgressBar player1HpBar = new ProgressBar(1.0);
     private ProgressBar player2HpBar = new ProgressBar(1.0);
+    private ProgressBar player1StaminaBar = new ProgressBar(1.0);
+    private ProgressBar player2StaminaBar = new ProgressBar(1.0);
     private ProgressBar enemyHpBar = new ProgressBar(1.0);
     
     private Label player1HpLabel = new Label();
     private Label player2HpLabel = new Label();
+    private Label player1StaminaLabel = new Label();
+    private Label player2StaminaLabel = new Label();
     private Label enemyHpLabel = new Label();
     private Label battleInfoLabel = new Label("Press Start Game, choose a character, and begin.");
 
@@ -119,7 +124,10 @@ public class BattleManager {
         VBox player1Box = new VBox(10,
                 new Label("Player"),
                 player1HpBar,
-                player1HpLabel
+                player1HpLabel,
+                new Label("Stamina:"), // Label to identify the bar
+                player1StaminaBar,
+                player1StaminaLabel
         );
         player1Box.setAlignment(Pos.CENTER);
         player1Box.setPadding(new Insets(15));
@@ -128,7 +136,10 @@ public class BattleManager {
         VBox player2Box = new VBox(10, 
                 new Label("Player 2"), 
                 player2HpBar, 
-                player2HpLabel 
+                player2HpLabel,
+                new Label("Stamina:"),
+                player2StaminaBar,
+                player2StaminaLabel
         );
         player2Box.setAlignment(Pos.CENTER); 
         player2Box.setPadding(new Insets(15)); 
@@ -189,6 +200,8 @@ public class BattleManager {
 
         this.playerMaxHp[0] = players[0].getHp();
         this.playerMaxHp[1] = players[1].getHp();
+        this.playerMaxStamina[0] = players[0].getStamina();
+        this.playerMaxStamina[1] = players[1].getStamina();
         this.enemyMaxHp = enemy.getHp();
 
         this.gameStarted = true;
@@ -238,7 +251,14 @@ public class BattleManager {
         if (currentPlayer == null || !currentPlayer.isAlive()) { 
             nextTurnAfterPlayerAction(); 
             return;
+        }// Check if they have enough stamina (e.g., 20)
+        if (currentPlayer.getStamina() < 20) {
+            battleInfoLabel.setText(currentPlayer.getName() + " is too tired! Use Heal to rest.");
+            return; 
         }
+
+        // Subtract stamina
+        currentPlayer.setStamina(currentPlayer.getStamina() - 20);
     
 
         int damage = currentPlayer.calculateAttack();
@@ -267,6 +287,9 @@ public class BattleManager {
 
         BaseCharacter currentPlayer = players[currentPlayerIndex]; 
         int healAmount = 18;
+     // Restore stamina (e.g., +30) but don't go over the max
+        int restoredStamina = Math.min(playerMaxStamina[currentPlayerIndex], currentPlayer.getStamina() + 30);
+        currentPlayer.setStamina(restoredStamina);
 
         int newHp = Math.min(playerMaxHp[currentPlayerIndex], currentPlayer.getHp() + healAmount); 
         int actualHeal = newHp - currentPlayer.getHp();
@@ -361,26 +384,29 @@ public class BattleManager {
 
     private void updateBattleUi() {
         if (players[0] != null) {
+            // HP Logic
             player1HpBar.setProgress((double) players[0].getHp() / playerMaxHp[0]);
-            player1HpLabel.setText(players[0].getName() + " HP: " + players[0].getHp() + " / " + playerMaxHp[0]); 
-        } else { 
-            player1HpBar.setProgress(0);
-            player1HpLabel.setText("Player 1 not selected");
+            player1HpLabel.setText(players[0].getName() + " HP: " + players[0].getHp());
+            
+            // Stamina Logic - Using the array you just declared
+            player1StaminaBar.setProgress((double) players[0].getStamina() / playerMaxStamina[0]);
+            player1StaminaLabel.setText("Stamina: " + players[0].getStamina());
+            player1StaminaBar.setStyle("-fx-accent: #e67e22;"); // Orange/Gold color
         }
 
         if (players[1] != null) {
             player2HpBar.setProgress((double) players[1].getHp() / playerMaxHp[1]);
-            player2HpLabel.setText(players[1].getName() + " HP: " + players[1].getHp() + " / " + playerMaxHp[1]);
-        } else { 
-            player2HpBar.setProgress(0);
-            player2HpLabel.setText("Player 2 not selected"); 
+            player2HpLabel.setText(players[1].getName() + " HP: " + players[1].getHp());
+            
+            player2StaminaBar.setProgress((double) players[1].getStamina() / playerMaxStamina[1]);
+            player2StaminaLabel.setText("Stamina: " + players[1].getStamina());
+            player2StaminaBar.setStyle("-fx-accent: #e67e22;");
         }
 
         if (enemy != null) {
             enemyHpBar.setProgress((double) enemy.getHp() / enemyMaxHp);
-            enemyHpLabel.setText(enemy.getName() + " HP: " + enemy.getHp() + " / " + enemyMaxHp);
+            enemyHpLabel.setText(enemy.getName() + " HP: " + enemy.getHp());
         }
-    
     }
     private Image getSpriteForCharacter(BaseCharacter character) {
         if (character instanceof Archer) {
