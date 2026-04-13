@@ -59,6 +59,14 @@ public class BattleManager {
     private ImageView player2Sprite; 
     private ImageView bossSprite; 
     
+    private int[] playerMaxStamina = new int[2];
+
+    private ProgressBar player1StaminaBar = new ProgressBar(1.0);
+    private ProgressBar player2StaminaBar = new ProgressBar(1.0);
+
+    private Label player1StaminaLabel = new Label();
+    private Label player2StaminaLabel = new Label();
+    
     private void updateTurnIndicator() {
 
         player1Sprite.setEffect(null);
@@ -141,6 +149,9 @@ public class BattleManager {
     }
     
     public Scene createBattleScene(Runnable pauseAction) {
+    	player1StaminaBar.setStyle("-fx-accent: orange;");
+    	player2StaminaBar.setStyle("-fx-accent: orange;");
+    	
         // 1. The Root Layer (StackPane allows layering UI over the background)
         StackPane root = new StackPane();
 
@@ -182,12 +193,36 @@ public class BattleManager {
         hud.setPadding(new Insets(30, 50, 0, 50));
 
         // Player Side (Left)
-        VBox playerHUD = new VBox(10);
-        styleHealthBar(player1HpBar, "#f1c40f"); 
-        styleHealthBar(player2HpBar, "#f1c40f");
-        player1HpBar.setPrefWidth(350);
-        player2HpBar.setPrefWidth(350);
-        
+     // Player 1 Box
+        VBox player1Box = new VBox(10,
+                new Label("Player 1"),
+                player1HpBar,
+                player1HpLabel,
+                new Label("Stamina"),
+                player1StaminaBar,
+                player1StaminaLabel
+        );
+        player1Box.setAlignment(Pos.CENTER);
+        player1Box.setPadding(new Insets(10));
+
+        // Player 2 Box
+        VBox player2Box = new VBox(10,
+                new Label("Player 2"),
+                player2HpBar,
+                player2HpLabel,
+                new Label("Stamina"),
+                player2StaminaBar,
+                player2StaminaLabel
+        );
+        player2Box.setAlignment(Pos.CENTER);
+        player2Box.setPadding(new Insets(10));
+
+        // Combine both
+        HBox playersContainer = new HBox(30, player1Box, player2Box);
+        playersContainer.setAlignment(Pos.TOP_LEFT);
+
+        // Set to HUD
+        hud.setLeft(playersContainer);        
         player1HpLabel.setTextFill(Color.WHITE);
         player1HpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
         player2HpLabel.setTextFill(Color.WHITE);
@@ -195,8 +230,7 @@ public class BattleManager {
         enemyHpLabel.setTextFill(Color.WHITE);
         enemyHpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
         
-        playerHUD.getChildren().addAll(player1HpBar, player1HpLabel, player2HpBar, player2HpLabel, enemyHpLabel,  enemyHpBar);
-
+        
         
         // Boss Side (Right)
         VBox bossHUD = new VBox(10);
@@ -211,7 +245,7 @@ public class BattleManager {
         
         bossHUD.getChildren().addAll(bossTitle, enemyHpBar, enemyHpLabel);
 
-        hud.setLeft(playerHUD);
+        
         hud.setRight(bossHUD);
 
         // --- LAYER 4: INFO & MESSAGES (Center) ---
@@ -378,6 +412,8 @@ public class BattleManager {
     public void startBattle(BaseCharacter selectedCharacter1, BaseCharacter selectedCharacter2) {
         this.players[0] = cloneCharacter(selectedCharacter1);
         this.players[1] = cloneCharacter(selectedCharacter2);
+        this.playerMaxStamina[0] = players[0].getStamina();
+        this.playerMaxStamina[1] = players[1].getStamina();
         this.enemy = new boss("Gorgon");
 
         this.playerMaxHp[0] = players[0].getHp();
@@ -424,12 +460,24 @@ public class BattleManager {
     }
 
     private void playerAttack() {
-        BaseCharacter attacker = players[currentPlayerIndex];
-        if (attacker == null || !attacker.isAlive()) return;
+    	BaseCharacter attacker = players[currentPlayerIndex];
+    	if (attacker == null || !attacker.isAlive()) {
+    	    nextTurnAfterPlayerAction();
+    	    return;
+    	}
 
-        // 1. Determine which sprite is attacking
-        ImageView attackerSprite = (currentPlayerIndex == 0) ? player1Sprite : player2Sprite;
+    	// Check stamina
+    	if (attacker.getStamina() < 20) {
+    	    battleInfoLabel.setText(attacker.getName() + " is too tired! Use Heal to rest.");
+    	    return;
+    	}
 
+    	// Subtract stamina
+    	attacker.setStamina(attacker.getStamina() - 20);
+    	updateBattleUi(); // ✅ RIGHT HERE
+
+    	// Continue with attack
+    	ImageView attackerSprite = (currentPlayerIndex == 0) ? player1Sprite : player2Sprite;
         battleInfoLabel.setText(attacker.getName() + " launches an attack!");
 
         // 2. Trigger the Animation
@@ -561,7 +609,7 @@ public class BattleManager {
     private BaseCharacter chooseBossTarget() {
         boolean p1Alive = players[0] != null && players[0].isAlive();
         boolean p2Alive = players[1] != null && players[1].isAlive();
-
+        
         if (p1Alive && p2Alive) {
             return Math.random() < 0.5 ? players[0] : players[1];
         } else if (p1Alive) { 
@@ -581,25 +629,24 @@ public class BattleManager {
     private void updateBattleUi() {
         if (players[0] != null) {
             player1HpBar.setProgress((double) players[0].getHp() / playerMaxHp[0]);
-            player1HpLabel.setText(players[0].getName() + " HP: " + players[0].getHp() + " / " + playerMaxHp[0]); 
-        } else { 
-            player1HpBar.setProgress(0);
-            player1HpLabel.setText("Player 1 not selected");
+            player1HpLabel.setText(players[0].getName() + " HP: " + players[0].getHp());
+
+            player1StaminaBar.setProgress((double) players[0].getStamina() / playerMaxStamina[0]);
+            player1StaminaLabel.setText("Stamina: " + players[0].getStamina());
         }
 
         if (players[1] != null) {
             player2HpBar.setProgress((double) players[1].getHp() / playerMaxHp[1]);
-            player2HpLabel.setText(players[1].getName() + " HP: " + players[1].getHp() + " / " + playerMaxHp[1]);
-        } else { 
-            player2HpBar.setProgress(0);
-            player2HpLabel.setText("Player 2 not selected"); 
+            player2HpLabel.setText(players[1].getName() + " HP: " + players[1].getHp());
+
+            player2StaminaBar.setProgress((double) players[1].getStamina() / playerMaxStamina[1]);
+            player2StaminaLabel.setText("Stamina: " + players[1].getStamina());
         }
 
         if (enemy != null) {
             enemyHpBar.setProgress((double) enemy.getHp() / enemyMaxHp);
-            enemyHpLabel.setText(enemy.getName() + " HP: " + enemy.getHp() + " / " + enemyMaxHp);
+            enemyHpLabel.setText(enemy.getName() + " HP: " + enemy.getHp());
         }
-    
     }
     private Image getSpriteForCharacter(BaseCharacter character) {
         if (character instanceof Archer) {
