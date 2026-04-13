@@ -149,8 +149,14 @@ public class BattleManager {
     }
     
     public Scene createBattleScene(Runnable pauseAction) {
-    	player1StaminaBar.setStyle("-fx-accent: orange;");
-    	player2StaminaBar.setStyle("-fx-accent: orange;");
+        // Style the Stamina Bars (Orange)
+        styleHealthBar(player1StaminaBar, "orange");
+        styleHealthBar(player2StaminaBar, "orange");
+        
+        // Optional: Style the Player HP Bars (Green or Red) so they match the boss's bar style
+        styleHealthBar(player1HpBar, "#2ecc71"); // Green
+        styleHealthBar(player2HpBar, "#2ecc71"); // Green
+        
     	
         // 1. The Root Layer (StackPane allows layering UI over the background)
         StackPane root = new StackPane();
@@ -202,7 +208,7 @@ public class BattleManager {
                 player1StaminaBar,
                 player1StaminaLabel
         );
-        player1Box.setAlignment(Pos.CENTER);
+        player1Box.setAlignment(Pos.TOP_LEFT);
         player1Box.setPadding(new Insets(10));
 
         // Player 2 Box
@@ -214,7 +220,7 @@ public class BattleManager {
                 player2StaminaBar,
                 player2StaminaLabel
         );
-        player2Box.setAlignment(Pos.CENTER);
+        player2Box.setAlignment(Pos.TOP_LEFT);
         player2Box.setPadding(new Insets(10));
 
         // Combine both
@@ -229,6 +235,10 @@ public class BattleManager {
         player2HpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
         enemyHpLabel.setTextFill(Color.WHITE);
         enemyHpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
+        player1StaminaLabel.setTextFill(Color.WHITE);
+        player1StaminaLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
+        player2StaminaLabel.setTextFill(Color.WHITE);
+        player2StaminaLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
         
         
         
@@ -400,7 +410,7 @@ public class BattleManager {
     
     private void styleHealthBar(ProgressBar bar, String color) {
         bar.setStyle(
-            "-fx-accent: " + color + "; " +               // Progress color (Gold)
+            "-fx-accent: " + color + "; " +               // Progress color
             "-fx-control-inner-background: #222222; " +    // Background color (Dark Gray)
             "-fx-background-color: white, black; " +       // Double border effect
             "-fx-background-insets: 0, 1; " + 
@@ -467,13 +477,12 @@ public class BattleManager {
     	}
 
     	// Check stamina
-    	if (attacker.getStamina() < 20) {
-    	    battleInfoLabel.setText(attacker.getName() + " is too tired! Use Heal to rest.");
-    	    return;
-    	}
+    	if (attacker.getStamina() < 20) { }
 
     	// Subtract stamina
-    	attacker.setStamina(attacker.getStamina() - 20);
+    	attacker.setStamina(attacker.getStamina() - 20)
+
+;
     	updateBattleUi(); // ✅ RIGHT HERE
 
     	// Continue with attack
