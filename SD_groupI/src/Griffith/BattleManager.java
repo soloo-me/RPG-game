@@ -19,8 +19,6 @@ import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-
-
 public class BattleManager {
 
     private BaseCharacter[] players = new BaseCharacter[2];
