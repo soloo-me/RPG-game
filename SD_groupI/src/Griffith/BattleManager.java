@@ -18,11 +18,16 @@ import javafx.scene.control.ButtonType;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-
+import javafx.scene.text.FontWeight;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.effect.Glow;
+import javafx.geometry.Bounds;
 
 
 public class BattleManager {
-
+	private Pane animationLayer = new Pane();
     private BaseCharacter[] players = new BaseCharacter[2];
     private BaseCharacter enemy;
     private int currentPlayerIndex = 0;
@@ -54,122 +59,185 @@ public class BattleManager {
     private ImageView player2Sprite; 
     private ImageView bossSprite; 
     
+    private void updateTurnIndicator() {
+
+        player1Sprite.setEffect(null);
+        player2Sprite.setEffect(null);
+
+        if (!gameStarted) return;
+
+        if (playerTurn) {
+            if (currentPlayerIndex == 0) {
+                player1Sprite.setEffect(new Glow(0.8));
+            } 
+            else if (currentPlayerIndex == 1) {
+                player2Sprite.setEffect(new Glow(0.8));
+            }
+        } 
+        else {
+            bossSprite.setEffect(new Glow(0.8));
+        }
+    }
+    
+    private int firstAlivePlayerIndex() {
+        if (players[0] != null && players[0].isAlive()) {
+            return 0;
+        }
+        if (players[1] != null && players[1].isAlive()) {
+            return 1;
+        }
+        return 0; // fallback (shouldn't happen in normal play)
+    }
+    
+    private void nextTurn() {
+
+        // If player turn phase
+        if (playerTurn) {
+
+            // switch between player 1 and player 2
+            if (currentPlayerIndex == 0 && players[1] != null && players[1].isAlive()) {
+                currentPlayerIndex = 1;
+            } 
+            else {
+                // move to enemy turn
+                playerTurn = false;
+            }
+        }
+
+        // Enemy turn
+        if (!playerTurn) {
+            enemyTurn();
+            return;
+        }
+
+        updateTurnIndicator();
+    }
+    
+    
     private void showEndGameScreen(boolean isVictory) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Game Over");
         alert.setHeaderText(isVictory ? "Victory!" : "Defeat!");
-        alert.setContentText(isVictory ? "You defeated the boss! Play again?" : "You have fallen. Try again?");
+        alert.setContentText(isVictory 
+            ? "You defeated the boss! Play again?" 
+            : "You have fallen. Try again?");
 
-       
         ButtonType yesButton = new ButtonType("Yes");
         ButtonType noButton = new ButtonType("No");
         alert.getButtonTypes().setAll(yesButton, noButton);
 
-        
-        alert.showAndWait().ifPresent(type -> {
-            if (type == yesButton) {
-                
-            if (returnToMenuAction != null) {
+        alert.show(); // ✅ NON-BLOCKING
+
+        alert.setOnHidden(event -> {
+            ButtonType result = alert.getResult();
+            if (result == yesButton) {
+                if (returnToMenuAction != null) {
                     returnToMenuAction.run();
                 }
             } else {
-                
                 Platform.exit();
             }
         });
     }
     
     public Scene createBattleScene(Runnable pauseAction) {
-        Label title = new Label("Battle");
-        title.setFont(Font.font(28));
-        
-        Pane battlePane = new Pane(); 
+        // 1. The Root Layer (StackPane allows layering UI over the background)
+        StackPane root = new StackPane();
 
-        ImageView background = new ImageView(new Image("file:pictures/Game_Background.png")); 
+        // --- LAYER 1: THE BACKGROUND ---
+        Pane backgroundPane = new Pane();
+        ImageView background = new ImageView(new Image("file:pictures/Game_Background.png"));
         background.setPreserveRatio(false);
-        background.fitWidthProperty().bind(battlePane.widthProperty());
-        background.fitHeightProperty().bind(battlePane.heightProperty());
-        
-        player1Sprite = new ImageView(); 
-        player2Sprite = new ImageView(); 
-        bossSprite = new ImageView(); 
-        
-     //Scale images
+        background.fitWidthProperty().bind(backgroundPane.widthProperty());
+        background.fitHeightProperty().bind(backgroundPane.heightProperty());
+        backgroundPane.getChildren().add(background);
+
+        // --- LAYER 2: THE STAGE (Characters) ---
+        HBox stage = new HBox(50); // Space between heroes and boss
+        stage.setAlignment(Pos.BOTTOM_CENTER);
+        stage.setPadding(new Insets(0, 0, 80, 0)); // Moves them up/down to sit on the "floor"
+
+        // Set up Sprites (Keeping your existing variables)
+        player1Sprite = new ImageView();
+        player2Sprite = new ImageView();
+        bossSprite = new ImageView();
+
+        player1Sprite.setFitHeight(300); // Standardize height for the stage
         player1Sprite.setPreserveRatio(true);
-        player1Sprite.setFitWidth(200);
-
+        player2Sprite.setFitHeight(300);
         player2Sprite.setPreserveRatio(true);
-        player2Sprite.setFitWidth(200);
-
+        
+        bossSprite.setFitHeight(450); // Make boss bigger
         bossSprite.setPreserveRatio(true);
-        bossSprite.setFitWidth(300);
+        bossSprite.setScaleX(-1); // Flip boss to face left
 
-        // positions
-        player1Sprite.setLayoutX(150);
-        player1Sprite.setLayoutY(300);
+        // Group players together on the left
+        HBox heroes = new HBox(-80, player1Sprite, player2Sprite); 
+        heroes.setAlignment(Pos.BOTTOM_CENTER);
 
-        player2Sprite.setLayoutX(400);
-        player2Sprite.setLayoutY(3000);
+        stage.getChildren().addAll(heroes, bossSprite);
 
-        bossSprite.setLayoutX(700);
-        bossSprite.setLayoutY(1500);
+        
+        BorderPane hud = new BorderPane();
+        hud.setPadding(new Insets(30, 50, 0, 50));
 
-        battlePane.getChildren().addAll(background, bossSprite, player1Sprite, player2Sprite);
+        // Player Side (Left)
+        VBox playerHUD = new VBox(10);
+        styleHealthBar(player1HpBar, "#f1c40f"); 
+        styleHealthBar(player2HpBar, "#f1c40f");
+        player1HpBar.setPrefWidth(350);
+        player2HpBar.setPrefWidth(350);
+        
+        player1HpLabel.setTextFill(Color.WHITE);
+        player1HpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
+        player2HpLabel.setTextFill(Color.WHITE);
+        player2HpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
+        enemyHpLabel.setTextFill(Color.WHITE);
+        enemyHpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
+        
+        playerHUD.getChildren().addAll(player1HpBar, player1HpLabel, player2HpBar, player2HpLabel, enemyHpLabel,  enemyHpBar);
 
-        VBox player1Box = new VBox(10,
-                new Label("Player"),
-                player1HpBar,
-                player1HpLabel
-        );
-        player1Box.setAlignment(Pos.CENTER);
-        player1Box.setPadding(new Insets(15));
-        player1Box.setStyle("-fx-border-color: green; -fx-border-width: 2;");
+        
+        // Boss Side (Right)
+        VBox bossHUD = new VBox(10);
+        bossHUD.setAlignment(Pos.TOP_RIGHT);
+        styleHealthBar(enemyHpBar, "#f1c40f");
+        enemyHpBar.setPrefWidth(400);
+        enemyHpBar.setPrefHeight(30);
+        
+        Label bossTitle = new Label("GORGON");
+        bossTitle.setTextFill(Color.WHITE);
+        bossTitle.setFont(Font.font("Verdana", FontWeight.BOLD, 22));
+        
+        bossHUD.getChildren().addAll(bossTitle, enemyHpBar, enemyHpLabel);
 
-        VBox player2Box = new VBox(10, 
-                new Label("Player 2"), 
-                player2HpBar, 
-                player2HpLabel 
-        );
-        player2Box.setAlignment(Pos.CENTER); 
-        player2Box.setPadding(new Insets(15)); 
-        player2Box.setStyle("-fx-border-color: dodgerblue; -fx-border-width: 2;"); 
+        hud.setLeft(playerHUD);
+        hud.setRight(bossHUD);
 
-        VBox enemyBox = new VBox(10,
-                new Label("Enemy Boss"),
-                enemyHpBar,
-                enemyHpLabel
-        );
-        enemyBox.setAlignment(Pos.CENTER);
-        enemyBox.setPadding(new Insets(15));
-        enemyBox.setStyle("-fx-border-color: darkred; -fx-border-width: 2;");
+        // --- LAYER 4: INFO & MESSAGES (Center) ---
+        VBox infoBox = new VBox(20, battleInfoLabel);
+        infoBox.setAlignment(Pos.CENTER);
+        battleInfoLabel.setTextFill(Color.WHITE);
+        battleInfoLabel.setStyle("-fx-background-color: rgba(0,0,0,0.5); -fx-padding: 10;");
 
-        HBox topBars = new HBox(25, player1Box, player2Box, enemyBox);
-        topBars.setAlignment(Pos.CENTER);
+     // 1. Make sure clicks pass through the invisible animation layer
+        animationLayer.setMouseTransparent(true); 
+        
+        // 2. Clear anything old and add the layers in order (Back to Front)
+        root.getChildren().clear();
+        root.getChildren().addAll(backgroundPane, stage, hud, infoBox, animationLayer); 
 
-        Label controls = new Label("Battle controls: A = Attack | H = Heal | P or ESC = Pause");
-        controls.setTextFill(Color.DARKBLUE);
+        // 3. Create the scene object
+        Scene battleScene = new Scene(root, 1000, 650);
 
-        battleInfoLabel.setWrapText(true);
-        battleInfoLabel.setPrefWidth(650);
-        battleInfoLabel.setFont(Font.font(16));
-
-        VBox centerBox = new VBox(18, title, topBars, controls, battleInfoLabel);
-        centerBox.setAlignment(Pos.CENTER);
-        centerBox.setPadding(new Insets(25));
-
-        BorderPane root = new BorderPane();
-        root.setCenter(new StackPane(battlePane,centerBox));
-
-        Scene scene = new Scene(root, 1000, 650);
-
-        scene.setOnKeyPressed(event -> {
-            if (!gameStarted || gamePaused || players[0] == null || enemy == null || players[1] == null) {
+        // 4. Add the Key Listeners to this new scene
+        battleScene.setOnKeyPressed(event -> {
+            if (!gameStarted || gamePaused || players[0] == null || enemy == null) {
                 if (event.getCode() == KeyCode.P || event.getCode() == KeyCode.ESCAPE) {
                     pauseAction.run();
                 }
                 return;
             }
-
             switch (event.getCode()) {
                 case A -> playerAttack();
                 case H -> playerHeal();
@@ -178,7 +246,132 @@ public class BattleManager {
             }
         });
 
-        return scene;
+        // 5. Return the finished scene
+        return battleScene;
+    }
+    
+    private void animateBossAttack(ImageView sourceSprite, ImageView targetSprite, Runnable onImpact) {
+        // 1. Create the Beam (A glowing cyan rectangle)
+        Rectangle beam = new Rectangle(60, 10, Color.CYAN);
+        beam.setEffect(new Glow(0.8));
+
+        // 2. Find the exact X/Y coordinates of the sprites on the screen
+        Bounds sourceBounds = sourceSprite.localToScene(sourceSprite.getBoundsInLocal());
+        Bounds targetBounds = targetSprite.localToScene(targetSprite.getBoundsInLocal());
+
+        
+        double startX = sourceBounds.getMinX();
+        double startY = sourceBounds.getMinY() + (sourceBounds.getHeight() / 2);
+
+        
+        double endX = targetBounds.getMaxX();
+        double endY = targetBounds.getMinY() + (targetBounds.getHeight() / 2);
+
+        beam.setLayoutX(startX);
+        beam.setLayoutY(startY);
+
+        
+        animationLayer.getChildren().add(beam);
+
+        
+        TranslateTransition transition = new TranslateTransition(Duration.seconds(0.4), beam);
+        transition.setByX(endX - startX);
+        transition.setByY(endY - startY);
+
+       
+        transition.setOnFinished(e -> {
+            animationLayer.getChildren().remove(beam); 
+            onImpact.run(); 
+            playHitEffect(targetSprite);
+        });
+
+        transition.play();
+        
+     // Inside your animateBossAttack callback:
+        if (!anyPlayerAlive()) {
+            battleInfoLabel.setText("Both heroes have fallen. Game over.");
+            gameStarted = false;
+
+            // Wrap the popup in runLater to avoid the crash
+            Platform.runLater(() -> {
+                showEndGameScreen(false);
+            });
+            return;
+        }
+        
+    }
+    
+    private void animatePlayerAttack(ImageView sourceSprite, ImageView targetSprite, Runnable onImpact) {
+        // 1. Create a Golden Beam for the Hero
+        Rectangle beam = new Rectangle(50, 8, Color.GOLD);
+        beam.setEffect(new Glow(0.8));
+
+        // 2. Get Positions
+        Bounds sourceBounds = sourceSprite.localToScene(sourceSprite.getBoundsInLocal());
+        Bounds targetBounds = targetSprite.localToScene(targetSprite.getBoundsInLocal());
+
+        // Start at Player (Right side of sprite)
+        double startX = sourceBounds.getMaxX();
+        double startY = sourceBounds.getMinY() + (sourceBounds.getHeight() / 2);
+
+        // End at Boss (Left side of sprite)
+        double endX = targetBounds.getMinX();
+        double endY = targetBounds.getMinY() + (targetBounds.getHeight() / 2);
+
+        beam.setLayoutX(startX);
+        beam.setLayoutY(startY);
+        animationLayer.getChildren().add(beam);
+
+        // 3. Move the beam
+        TranslateTransition tt = new TranslateTransition(Duration.seconds(0.3), beam);
+        tt.setByX(endX - startX);
+        tt.setByY(endY - startY);
+
+        tt.setOnFinished(e -> {
+            animationLayer.getChildren().remove(beam);
+            onImpact.run(); // Damage happens now!
+            playHitEffect(targetSprite);
+        });
+        tt.play();
+     // Inside your animatePlayerAttack callback:
+        if (!enemy.isAlive()) {
+            battleInfoLabel.setText("Victory! The " + enemy.getName() + " has been defeated!");
+            gameStarted = false;
+            
+            // Wrap the popup in runLater to avoid the crash
+            Platform.runLater(() -> {
+                showEndGameScreen(true);
+            });
+        } else {
+            // ... rest of your turn switching logic ...
+        }
+        
+    }
+    
+    private void playHitEffect(ImageView target) {
+        // Flash effect
+        target.setOpacity(0.4);
+
+        javafx.animation.PauseTransition flash = new javafx.animation.PauseTransition(Duration.millis(100));
+        flash.setOnFinished(e -> target.setOpacity(1.0));
+        flash.play();
+
+        // Shake effect
+        TranslateTransition shake = new TranslateTransition(Duration.millis(100), target);
+        shake.setByX(10);
+        shake.setCycleCount(4);
+        shake.setAutoReverse(true);
+        shake.play();
+    }
+    
+    private void styleHealthBar(ProgressBar bar, String color) {
+        bar.setStyle(
+            "-fx-accent: " + color + "; " +               // Progress color (Gold)
+            "-fx-control-inner-background: #222222; " +    // Background color (Dark Gray)
+            "-fx-background-color: white, black; " +       // Double border effect
+            "-fx-background-insets: 0, 1; " + 
+            "-fx-padding: 2px;"
+        );
     }
     
 
@@ -194,13 +387,14 @@ public class BattleManager {
         this.gameStarted = true;
         this.gamePaused = false;
         this.playerTurn = true;
-        this.currentPlayerIndex = 0;
+        this.currentPlayerIndex = this.players[0].isAlive() ? 0 : 1; // Start with player 1 if alive, otherwise player 2
+        updateTurnIndicator();
 
         battleInfoLabel.setText(players[0].getName() +" and " + players[1].getName() + " enters the battle against " + enemy.getName() + ".\n" + players[currentPlayerIndex].getName() + "'s turn. Press A to attack.");
         
         player1Sprite.setImage(getSpriteForCharacter(players[0]));
         player2Sprite.setImage(getSpriteForCharacter(players[1]));
-        bossSprite.setImage(new Image("file:pictures/Boss.pn")); //file name spelling error on purpose because image isn't where it's supposed to be when you run it
+        bossSprite.setImage(new Image("file:pictures/Boss.png")); //file name spelling error on purpose because image isn't where it's supposed to be when you run it
         
         updateBattleUi();
     }
@@ -230,34 +424,43 @@ public class BattleManager {
     }
 
     private void playerAttack() {
-        if (!playerTurn) {
-            return;
-        }
-        BaseCharacter currentPlayer = players[currentPlayerIndex]; 
+        BaseCharacter attacker = players[currentPlayerIndex];
+        if (attacker == null || !attacker.isAlive()) return;
 
-        if (currentPlayer == null || !currentPlayer.isAlive()) { 
-            nextTurnAfterPlayerAction(); 
-            return;
-        }
-    
+        // 1. Determine which sprite is attacking
+        ImageView attackerSprite = (currentPlayerIndex == 0) ? player1Sprite : player2Sprite;
 
-        int damage = currentPlayer.calculateAttack();
-        int before = enemy.getHp();
-        enemy.takeDamage(damage);
-        int dealt = before - enemy.getHp();
+        battleInfoLabel.setText(attacker.getName() + " launches an attack!");
 
-        battleInfoLabel.setText(currentPlayer.getName() + " attacks for " + dealt + " damage.");
-        updateBattleUi();
-
-        if (!enemy.isAlive()) {
-            battleInfoLabel.setText(currentPlayer.getName() + " defeated the boss. You win!");
-            gameStarted = false;
+        // 2. Trigger the Animation
+        animatePlayerAttack(attackerSprite, bossSprite, () -> {
+            // --- ALL DAMAGE LOGIC GOES INSIDE THIS BLOCK ---
+            int damage = attacker.calculateAttack();
+            enemy.takeDamage(damage);
             
-            showEndGameScreen(true); 
-            return;
-        }
+            battleInfoLabel.setText(attacker.getName() + " hit " + enemy.getName() + " for " + damage + " damage!");
+            updateBattleUi();
 
-        nextTurnAfterPlayerAction();
+            // 3. Check if boss died or move to next turn
+            if (!enemy.isAlive()) {
+                battleInfoLabel.setText("Victory! The " + enemy.getName() + " has been defeated!");
+                gameStarted = false;
+                showEndGameScreen(true);
+            } else {
+                // Logic to switch to player 2 or enemy turn
+                if (currentPlayerIndex == 0 && players[1] != null && players[1].isAlive()) {
+                	nextTurn();
+                    battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + players[1].getName() + "'s turn!");
+                } else {
+                    playerTurn = false;
+                    // Add a small delay before boss counter-attacks so it feels natural
+                    new Thread(() -> {
+                        try { Thread.sleep(1000); } catch (InterruptedException e) {}
+                        Platform.runLater(() -> enemyTurn());
+                    }).start();
+                }
+            }
+        });
     }
 
     private void playerHeal() {
@@ -303,6 +506,7 @@ public class BattleManager {
         if (!enemy.isAlive() || !anyPlayerAlive()) {
             return;
         }
+        
         BaseCharacter target = chooseBossTarget(); 
         if (target == null) { 
             battleInfoLabel.setText("Both heroes have fallen. Game over."); 
@@ -311,34 +515,49 @@ public class BattleManager {
             return; 
         }
 
-        int damage = enemy.calculateAttack();
-        int before = target.getHp();
-        target.takeDamage(damage);
-        int dealt = before - target.getHp();
+        // Figure out which sprite the boss is aiming at
+        ImageView targetSprite = (target == players[0]) ? player1Sprite : player2Sprite;
 
-        if (dealt <= 0) {
-            battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + enemy.getName() + " attacks " + target.getName() + ", but it deals no damage.");
-        } else {
-            battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + enemy.getName() + " hits " + target.getName() + " back for " + dealt + " damage.");
-        }
+        // Change text to show the boss is attacking
+        battleInfoLabel.setText(enemy.getName() + " is firing a beam at " + target.getName() + "!");
 
-        updateBattleUi();
-
-        if (!anyPlayerAlive()) {
-            battleInfoLabel.setText(battleInfoLabel.getText() + "\nBoth heroes have fallen. Game over.");
-            gameStarted = false;
+        // FIRE THE BEAM! 
+        animateBossAttack(bossSprite, targetSprite, () -> {
             
-            showEndGameScreen(false);
-            return;
-        }
+            // --- EVERYTHING IN HERE HAPPENS AFTER THE BEAM HITS ---
+            
+            int damage = enemy.calculateAttack();
+            int before = target.getHp();
+            target.takeDamage(damage);
+            int dealt = before - target.getHp();
 
-        playerTurn = true;
-        currentPlayerIndex = players[0].isAlive() ? 0 : 1;
-        battleInfoLabel.setText(
-                battleInfoLabel.getText() + "\n" +
-                players[currentPlayerIndex].getName() + "'s turn."
-        ); 
+            if (dealt <= 0) {
+                battleInfoLabel.setText(battleInfoLabel.getText() + "\nIt deals no damage!");
+            } else {
+                battleInfoLabel.setText(battleInfoLabel.getText() + "\nDirect hit for " + dealt + " damage!");
+            }
+
+            updateBattleUi();
+
+            if (!anyPlayerAlive()) {
+                battleInfoLabel.setText(battleInfoLabel.getText() + "\nBoth heroes have fallen. Game over.");
+                gameStarted = false;
+                showEndGameScreen(false);
+                return;
+            }
+
+            // Pass the turn back to the player
+            playerTurn = true;
+            currentPlayerIndex = firstAlivePlayerIndex();
+            updateTurnIndicator();
+            battleInfoLabel.setText(
+                    battleInfoLabel.getText() + "\n" +
+                    players[currentPlayerIndex].getName() + "'s turn."
+            ); 
+        });
     }
+    
+    
     private BaseCharacter chooseBossTarget() {
         boolean p1Alive = players[0] != null && players[0].isAlive();
         boolean p2Alive = players[1] != null && players[1].isAlive();
