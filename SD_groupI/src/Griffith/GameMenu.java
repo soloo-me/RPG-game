@@ -210,6 +210,7 @@ public class GameMenu extends Application {
         return card;
     }
 
+    // Settings
     private Scene createSettingsScene() {
         Label title = new Label("Settings");
         title.setFont(Font.font(28));
