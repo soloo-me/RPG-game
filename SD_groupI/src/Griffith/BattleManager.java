@@ -345,51 +345,28 @@ public class BattleManager {
         
     }
     
-    private void animatePlayerAttack(ImageView sourceSprite, ImageView targetSprite, Runnable onImpact) {
-        // 1. Create a Golden Beam for the Hero
-        Rectangle beam = new Rectangle(50, 8, Color.GOLD);
-        beam.setEffect(new Glow(0.8));
+    private void animatePlayerAttack(ImageView attacker, ImageView target, Runnable onImpact) {
 
-        // 2. Get Positions
-        Bounds sourceBounds = sourceSprite.localToScene(sourceSprite.getBoundsInLocal());
-        Bounds targetBounds = targetSprite.localToScene(targetSprite.getBoundsInLocal());
+        // Move forward
+        TranslateTransition forward = new TranslateTransition(Duration.millis(200), attacker);
+        forward.setByX(100);
+        forward.setByY(-20);
 
-        // Start at Player (Right side of sprite)
-        double startX = sourceBounds.getMaxX();
-        double startY = sourceBounds.getMinY() + (sourceBounds.getHeight() / 2);
+        // Move back
+        TranslateTransition back = new TranslateTransition(Duration.millis(200), attacker);
+        back.setByX(-100);
+        back.setByY(20);
 
-        // End at Boss (Left side of sprite)
-        double endX = targetBounds.getMinX();
-        double endY = targetBounds.getMinY() + (targetBounds.getHeight() / 2);
+        forward.setOnFinished(e -> {
+            // Apply damage when close
+            onImpact.run();
+            playHitEffect(target);
 
-        beam.setLayoutX(startX);
-        beam.setLayoutY(startY);
-        animationLayer.getChildren().add(beam);
-
-        // 3. Move the beam
-        TranslateTransition tt = new TranslateTransition(Duration.seconds(0.3), beam);
-        tt.setByX(endX - startX);
-        tt.setByY(endY - startY);
-
-        tt.setOnFinished(e -> {
-            animationLayer.getChildren().remove(beam);
-            onImpact.run(); // Damage happens now!
-            playHitEffect(targetSprite);
+            // Go back after hit
+            back.play();
         });
-        tt.play();
-     // Inside your animatePlayerAttack callback:
-        if (!enemy.isAlive()) {
-            battleInfoLabel.setText("Victory! The " + enemy.getName() + " has been defeated!");
-            gameStarted = false;
-            
-            // Wrap the popup in runLater to avoid the crash
-            Platform.runLater(() -> {
-                showEndGameScreen(true);
-            });
-        } else {
-            // ... rest of your turn switching logic ...
-        }
-        
+
+        forward.play();
     }
     
     private void playHitEffect(ImageView target) {
