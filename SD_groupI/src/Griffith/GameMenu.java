@@ -175,7 +175,6 @@ public class GameMenu extends Application {
 
         return scene;
     }
-
     private VBox createCharacterCard(BaseCharacter character) {
         Label nameLabel = new Label(character.getName());
         nameLabel.setFont(Font.font(18));
@@ -185,22 +184,32 @@ public class GameMenu extends Application {
 
         Button selectBtn = new Button("Select");
         selectBtn.setOnAction(e -> {
-        	if(selectedCharacter1 == null) {
-        		selectedCharacter1 = character;
-        	}
-        	else if (selectedCharacter2 == null) {
-        		selectedCharacter2 = character;
-        	}else {
-        		showAlert("You already selected 2 characters.");
-        		return;
-        	}
-        	String player1Name = (selectedCharacter1 == null) ? "None" : selectedCharacter1.getName();
-        	String player2Name = (selectedCharacter2 == null) ? "None" : selectedCharacter2.getName();
-        	
-        	selectedNameLabel.setText("Player 1: " + player1Name + " | Player 2: " + player2Name); // CHANGED
+            // If this character is already selected, deselect it
+            if (selectedCharacter1 == character) {
+                selectedCharacter1 = null;
+            } 
+            else if (selectedCharacter2 == character) {
+                selectedCharacter2 = null;
+            } 
+            // Otherwise, put it into the first empty slot
+            else if (selectedCharacter1 == null) {
+                selectedCharacter1 = character;
+            } 
+            else if (selectedCharacter2 == null) {
+                selectedCharacter2 = character;
+            } 
+            else {
+                showAlert("You already selected 2 characters. Deselect one first.");
+                return;
+            }
+
+            String player1Name = (selectedCharacter1 == null) ? "None" : selectedCharacter1.getName();
+            String player2Name = (selectedCharacter2 == null) ? "None" : selectedCharacter2.getName();
+
+            selectedNameLabel.setText("Player 1: " + player1Name + " | Player 2: " + player2Name);
             statsLabel.setText(buildStatsText(character));
         });
-        
+
         VBox card = new VBox(10, nameLabel, hp, atk, selectBtn);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(20));
