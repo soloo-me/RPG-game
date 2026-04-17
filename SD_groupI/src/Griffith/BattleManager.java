@@ -179,17 +179,17 @@ public class BattleManager {
         player2Sprite = new ImageView();
         bossSprite = new ImageView();
 
-        player1Sprite.setFitHeight(300); // Standardize height for the stage
+        player1Sprite.setFitHeight(200); // Standardize height for the stage
         player1Sprite.setPreserveRatio(true);
-        player2Sprite.setFitHeight(300);
+        player2Sprite.setFitHeight(200);
         player2Sprite.setPreserveRatio(true);
         
         bossSprite.setFitHeight(450); // Make boss bigger
         bossSprite.setPreserveRatio(true);
         bossSprite.setScaleX(-1); // Flip boss to face left
 
-        // Group players together on the left
-        HBox heroes = new HBox(-80, player1Sprite, player2Sprite); 
+        
+        VBox heroes = new VBox(20, player1Sprite, player2Sprite); 
         heroes.setAlignment(Pos.BOTTOM_CENTER);
 
         stage.getChildren().addAll(heroes, bossSprite);
@@ -210,6 +210,10 @@ public class BattleManager {
         );
         player1Box.setAlignment(Pos.TOP_LEFT);
         player1Box.setPadding(new Insets(10));
+        player1HpBar.setPrefWidth(70);      
+        player1HpBar.setPrefHeight(20);      
+        player1StaminaBar.setPrefWidth(70); 
+        player1StaminaBar.setPrefHeight(20);
 
         // Player 2 Box
         VBox player2Box = new VBox(10,
@@ -222,6 +226,11 @@ public class BattleManager {
         );
         player2Box.setAlignment(Pos.TOP_LEFT);
         player2Box.setPadding(new Insets(10));
+        player2HpBar.setPrefWidth(70);      
+        player2HpBar.setPrefHeight(20);      
+        player2StaminaBar.setPrefWidth(70); 
+        player2StaminaBar.setPrefHeight(20);
+
 
         // Combine both
         HBox playersContainer = new HBox(30, player1Box, player2Box);
@@ -230,15 +239,15 @@ public class BattleManager {
         // Set to HUD
         hud.setLeft(playersContainer);        
         player1HpLabel.setTextFill(Color.WHITE);
-        player1HpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
+        player1HpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 10));
         player2HpLabel.setTextFill(Color.WHITE);
-        player2HpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
+        player2HpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 10));
         enemyHpLabel.setTextFill(Color.WHITE);
         enemyHpLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
         player1StaminaLabel.setTextFill(Color.WHITE);
-        player1StaminaLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
+        player1StaminaLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 10));
         player2StaminaLabel.setTextFill(Color.WHITE);
-        player2StaminaLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
+        player2StaminaLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 10));
         
         
         
