@@ -29,6 +29,7 @@ public class GameMenu extends Application {
     private Label statsLabel = new Label("Stats will appear here");
 
     private BattleManager battleManager = new BattleManager();
+    
 
     @Override
     public void start(Stage primaryStage) {
@@ -133,7 +134,10 @@ public class GameMenu extends Application {
         statsBox.setPadding(new Insets(20));
         statsBox.setPrefWidth(320);
         statsBox.setStyle("-fx-border-color: black; -fx-border-width: 2; -fx-background-color: #f7f7f7;");
-
+        Label difficultyLabel = new Label("Select Difficulty:");
+        ComboBox<String> difficultyBox = new ComboBox<>();
+        difficultyBox.getItems().addAll("EASY", "MEDIUM", "HARD");
+        difficultyBox.setValue("MEDIUM"); // default
         Button confirmBtn = new Button("Confirm Selection");
         Button backBtn = new Button("Back");
 
@@ -142,15 +146,22 @@ public class GameMenu extends Application {
                 showAlert("Select 2 characters first.");
                 return;
             }
+
+            // 🔥 THIS IS THE IMPORTANT LINE
+            battleManager.setDifficulty(difficultyBox.getValue());
+
             battleManager.startBattle(selectedCharacter1, selectedCharacter2);
             window.setScene(battleScene);
             battleScene.getRoot().requestFocus();
         });
-
         backBtn.setOnAction(e -> window.setScene(mainMenuScene));
 
-        HBox bottomButtons = new HBox(15, confirmBtn, backBtn);
-        bottomButtons.setAlignment(Pos.CENTER);
+        VBox bottomSection = new VBox(10,
+                difficultyLabel,
+                difficultyBox,
+                new HBox(15, confirmBtn, backBtn)
+        );
+        bottomSection.setAlignment(Pos.CENTER);
 
         BorderPane root = new BorderPane();
         root.setTop(title);
@@ -158,8 +169,8 @@ public class GameMenu extends Application {
         BorderPane.setMargin(title, new Insets(20));
         root.setCenter(characterRow);
         root.setRight(statsBox);
-        root.setBottom(bottomButtons);
-        BorderPane.setMargin(bottomButtons, new Insets(20));
+        root.setBottom(bottomSection);
+        BorderPane.setMargin(bottomSection, new Insets(20));
 
         Scene scene = new Scene(root, 1000, 650);
         scene.setOnKeyPressed(event -> {
