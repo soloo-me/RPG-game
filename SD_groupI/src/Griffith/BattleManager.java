@@ -66,6 +66,7 @@ public class BattleManager {
 
     private Label player1StaminaLabel = new Label();
     private Label player2StaminaLabel = new Label();
+    private String difficulty = "HARD";
     
     private void updateTurnIndicator() {
 
@@ -454,12 +455,14 @@ public class BattleManager {
     	}
 
     	// Check stamina
-    	if (attacker.getStamina() < 20) { }
+    	if (attacker.getStamina() < 20) {
+    	    battleInfoLabel.setText(attacker.getName() + " is too tired!");
+    	    return;
+    	}
 
     	// Subtract stamina
-    	attacker.setStamina(attacker.getStamina() - 20)
-
-;
+    	int staminaCost = difficulty.equals("HARD") ? 30 : 20;
+    	attacker.setStamina(attacker.getStamina() - staminaCost);
     	updateBattleUi(); // ✅ RIGHT HERE
 
     	// Continue with attack
@@ -503,7 +506,15 @@ public class BattleManager {
         }
 
         BaseCharacter currentPlayer = players[currentPlayerIndex]; 
-        int healAmount = 18;
+        int healAmount;
+
+        if (difficulty.equals("EASY")) {
+            healAmount = 25;
+        } else if (difficulty.equals("HARD")) {
+            healAmount = 10;
+        } else {
+            healAmount = 18;
+        }
 
         int newHp = Math.min(playerMaxHp[currentPlayerIndex], currentPlayer.getHp() + healAmount); 
         int actualHeal = newHp - currentPlayer.getHp();
@@ -560,7 +571,16 @@ public class BattleManager {
             
             // --- EVERYTHING IN HERE HAPPENS AFTER THE BEAM HITS ---
             
-            int damage = enemy.calculateAttack();
+        	int damage = enemy.calculateAttack();
+
+        	if (difficulty.equals("EASY")) {
+        	    damage = Math.max(5, damage - 5);
+        	} else if (difficulty.equals("HARD")) {
+        	    damage += 15;
+        	}if (difficulty.equals("HARD") && Math.random() < 0.3) {
+        	    damage *= 2;
+        	    battleInfoLabel.setText(enemy.getName() + " lands a CRITICAL HIT!");
+        	}
             int before = target.getHp();
             target.takeDamage(damage);
             int dealt = before - target.getHp();
@@ -593,18 +613,19 @@ public class BattleManager {
     
     
     private BaseCharacter chooseBossTarget() {
-        boolean p1Alive = players[0] != null && players[0].isAlive();
-        boolean p2Alive = players[1] != null && players[1].isAlive();
-        
-        if (p1Alive && p2Alive) {
-            return Math.random() < 0.5 ? players[0] : players[1];
-        } else if (p1Alive) { 
-            return players[0];
-        } else if (p2Alive) { 
-            return players[1];
-        }
+    	boolean p1Alive = players[0] != null && players[0].isAlive();
+    	boolean p2Alive = players[1] != null && players[1].isAlive();
 
-        return null;
+    	if (!p1Alive && !p2Alive) return null;
+    	if (!p1Alive) return players[1];
+    	if (!p2Alive) return players[0];
+
+    	if (difficulty.equals("HARD")) {
+    	    return (players[0].getHp() < players[1].getHp()) ? players[0] : players[1];
+    	}
+
+    	// EASY / MEDIUM = random
+    	return Math.random() < 0.5 ? players[0] : players[1];
     }
 
     private boolean anyPlayerAlive() {
@@ -657,5 +678,9 @@ public class BattleManager {
         if (character instanceof Mage) return new Mage(character.getName());
         if (character instanceof Tank) return new Tank(character.getName());
         throw new IllegalArgumentException("Unknown character type");
+    }
+    
+    public void setDifficulty(String difficulty) {
+    	this.difficulty = difficulty;
     }
 }
