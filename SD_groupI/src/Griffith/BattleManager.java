@@ -1,6 +1,7 @@
 package Griffith;
 
 import javafx.geometry.Insets;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -24,6 +25,9 @@ import javafx.util.Duration;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.effect.Glow;
 import javafx.geometry.Bounds;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
 
 
 public class BattleManager {
@@ -305,54 +309,52 @@ public class BattleManager {
     }
     
     private void animateBossAttack(ImageView sourceSprite, ImageView targetSprite, Runnable onImpact) {
-        // 1. Create the Beam (A glowing cyan rectangle)
-        Rectangle beam = new Rectangle(60, 10, Color.CYAN);
-        beam.setEffect(new Glow(0.8));
 
-        // 2. Find the exact X/Y coordinates of the sprites on the screen
         Bounds sourceBounds = sourceSprite.localToScene(sourceSprite.getBoundsInLocal());
         Bounds targetBounds = targetSprite.localToScene(targetSprite.getBoundsInLocal());
 
-        
         double startX = sourceBounds.getMinX();
         double startY = sourceBounds.getMinY() + (sourceBounds.getHeight() / 2);
 
-        
         double endX = targetBounds.getMaxX();
         double endY = targetBounds.getMinY() + (targetBounds.getHeight() / 2);
 
-        beam.setLayoutX(startX);
-        beam.setLayoutY(startY);
+        int particleCount = 12; // 🔥 number of fire particles
 
-        
-        animationLayer.getChildren().add(beam);
+        for (int i = 0; i < particleCount; i++) {
 
-        
-        TranslateTransition transition = new TranslateTransition(Duration.seconds(0.4), beam);
-        transition.setByX(endX - startX);
-        transition.setByY(endY - startY);
+        	Label fire = new Label("🔥");
+        	fire.setStyle("-fx-font-size: 20px; -fx-font-family: 'Segoe UI Emoji';");
 
-       
-        transition.setOnFinished(e -> {
-            animationLayer.getChildren().remove(beam); 
-            onImpact.run(); 
-            playHitEffect(targetSprite);
+            fire.setLayoutX(startX);
+            fire.setLayoutY(startY);
+
+            animationLayer.getChildren().add(fire);
+
+            TranslateTransition tt = new TranslateTransition(
+                    Duration.seconds(0.4 + Math.random() * 0.2), fire);
+
+            tt.setToX((endX - startX) + (Math.random() - 0.5) * 50);
+            tt.setToY((endY - startY) + (Math.random() - 0.5) * 50);
+
+            FadeTransition fade = new FadeTransition(Duration.seconds(0.4), fire);
+            fade.setToValue(0);
+
+            ParallelTransition anim = new ParallelTransition(tt, fade);
+
+            anim.setOnFinished(e -> animationLayer.getChildren().remove(fire));
+            anim.play();
+        }
+
+        // 🔥 VERY IMPORTANT: delay impact until animation finishes
+        PauseTransition delay = new PauseTransition(Duration.seconds(0.45));
+        delay.setOnFinished(e -> {
+            onImpact.run();              // damage happens here
+            playHitEffect(targetSprite); // shake + flash
+            playExplosionEffect(targetSprite); // 💥 explosion effect
         });
 
-        transition.play();
-        
-     // Inside your animateBossAttack callback:
-        if (!anyPlayerAlive()) {
-            battleInfoLabel.setText("Both heroes have fallen. Game over.");
-            gameStarted = false;
-
-            // Wrap the popup in runLater to avoid the crash
-            Platform.runLater(() -> {
-                showEndGameScreen(false);
-            });
-            return;
-        }
-        
+        delay.play();
     }
     
     private void animatePlayerAttack(ImageView attacker, ImageView target, Runnable onImpact) {
@@ -428,6 +430,12 @@ public class BattleManager {
         player1Sprite.setImage(getSpriteForCharacter(players[0]));
         player2Sprite.setImage(getSpriteForCharacter(players[1]));
         bossSprite.setImage(new Image("file:pictures/Boss.png")); //file name spelling error on purpose because image isn't where it's supposed to be when you run it
+        
+     // 🔥 HARD MODE VISUAL EFFECT
+        if (difficulty.equals("HARD")) {
+            Glow redGlow = new Glow(0.9);
+            bossSprite.setEffect(redGlow);
+        }
         
         updateBattleUi();
     }
@@ -691,5 +699,52 @@ public class BattleManager {
     
     public void setDifficulty(String difficulty) {
     	this.difficulty = difficulty;
+    }
+    
+    private void playExplosionEffect(ImageView target) {
+
+        Bounds bounds = target.localToScene(target.getBoundsInLocal());
+
+        double centerX = bounds.getMinX() + bounds.getWidth() / 2;
+        double centerY = bounds.getMinY() + bounds.getHeight() / 2;
+
+        for (int i = 0; i < 15; i++) {
+
+            // 🔥 Circle instead of rectangle (key difference)
+            javafx.scene.shape.Circle fire = new javafx.scene.shape.Circle(
+                5 + Math.random() * 6, // random size
+                Color.color(1, Math.random() * 0.5, 0) // red → orange → yellow
+            );
+
+            fire.setLayoutX(centerX);
+            fire.setLayoutY(centerY);
+            fire.setEffect(new Glow(1.0));
+            fire.setOpacity(0.9);
+
+            animationLayer.getChildren().add(fire);
+
+            // 🔥 movement (spread + rise like fire)
+            TranslateTransition move = new TranslateTransition(Duration.millis(400), fire);
+            move.setByX((Math.random() - 0.5) * 100); // spread sideways
+            move.setByY(-50 - Math.random() * 50);    // move UP (important for fire look)
+
+            // 🔥 grow
+            javafx.animation.ScaleTransition scale =
+                    new javafx.animation.ScaleTransition(Duration.millis(400), fire);
+            scale.setToX(2.5);
+            scale.setToY(2.5);
+
+            // 🔥 fade out
+            javafx.animation.FadeTransition fade =
+                    new javafx.animation.FadeTransition(Duration.millis(400), fire);
+            fade.setFromValue(1.0);
+            fade.setToValue(0.0);
+
+            javafx.animation.ParallelTransition anim =
+                    new javafx.animation.ParallelTransition(move, scale, fade);
+
+            anim.setOnFinished(e -> animationLayer.getChildren().remove(fire));
+            anim.play();
+        }
     }
 }
