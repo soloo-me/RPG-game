@@ -323,8 +323,9 @@ public class BattleManager {
 
         for (int i = 0; i < particleCount; i++) {
 
-        	Label fire = new Label("🔥");
-        	fire.setStyle("-fx-font-size: 20px; -fx-font-family: 'Segoe UI Emoji';");
+        	ImageView fire = new ImageView(new Image("file:pictures/fire.png"));
+        	fire.setFitWidth(24);
+        	fire.setFitHeight(24);
 
             fire.setLayoutX(startX);
             fire.setLayoutY(startY);
@@ -334,8 +335,8 @@ public class BattleManager {
             TranslateTransition tt = new TranslateTransition(
                     Duration.seconds(0.4 + Math.random() * 0.2), fire);
 
-            tt.setToX((endX - startX) + (Math.random() - 0.5) * 50);
-            tt.setToY((endY - startY) + (Math.random() - 0.5) * 50);
+            tt.setByX((endX - startX) + (Math.random() - 0.5) * 50);
+            tt.setByY((endY - startY) + (Math.random() - 0.5) * 50);
 
             FadeTransition fade = new FadeTransition(Duration.seconds(0.4), fire);
             fade.setToValue(0);
@@ -487,6 +488,8 @@ public class BattleManager {
         battleInfoLabel.setText(attacker.getName() + " launches an attack!");
 
         // 2. Trigger the Animation
+        playSlashProjectile(attackerSprite, bossSprite);
+
         animatePlayerAttack(attackerSprite, bossSprite, () -> {
             // --- ALL DAMAGE LOGIC GOES INSIDE THIS BLOCK ---
             int damage = attacker.calculateAttack();
@@ -746,5 +749,43 @@ public class BattleManager {
             anim.setOnFinished(e -> animationLayer.getChildren().remove(fire));
             anim.play();
         }
+    }
+    
+    private void playSlashProjectile(ImageView source, ImageView target) {
+
+        Bounds start = source.getBoundsInParent();
+        Bounds end = target.getBoundsInParent();
+
+        double startX = start.getMinX() + start.getWidth() / 2;
+        double startY = start.getMinY() + start.getHeight() / 2;
+
+        double endX = end.getMinX() + end.getWidth() / 2;
+        double endY = end.getMinY() + end.getHeight() / 2;
+
+        Rectangle slash = new Rectangle(80, 6, Color.WHITE);
+        slash.setRotate(25);
+
+        slash.setLayoutX(startX);
+        slash.setLayoutY(startY);
+
+        animationLayer.getChildren().add(slash);
+
+        TranslateTransition move = new TranslateTransition(Duration.millis(300), slash);
+
+        move.setByX(endX - startX);
+        move.setByY(endY - startY);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(300), slash);
+        fade.setToValue(0);
+
+        ParallelTransition anim = new ParallelTransition(move, fade);
+
+        anim.setOnFinished(e -> {
+            animationLayer.getChildren().remove(slash);
+            playHitEffect(target);
+            playExplosionEffect(target);
+        });
+
+        anim.play();
     }
 }
