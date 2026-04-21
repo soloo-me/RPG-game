@@ -319,13 +319,13 @@ public class BattleManager {
         double endX = targetBounds.getMaxX();
         double endY = targetBounds.getMinY() + (targetBounds.getHeight() / 2);
 
-        int particleCount = 12; // 🔥 number of fire particles
+        int particleCount = 3; // 🔥 number of fire particles
 
         for (int i = 0; i < particleCount; i++) {
 
         	ImageView fire = new ImageView(new Image("file:pictures/fire.png"));
-        	fire.setFitWidth(24);
-        	fire.setFitHeight(24);
+        	fire.setFitWidth(80);
+        	fire.setFitHeight(80);
 
             fire.setLayoutX(startX);
             fire.setLayoutY(startY);
@@ -783,7 +783,6 @@ public class BattleManager {
         anim.setOnFinished(e -> {
             animationLayer.getChildren().remove(slash);
             playHitEffect(target);
-            playExplosionEffect(target);
         });
 
         anim.play();
