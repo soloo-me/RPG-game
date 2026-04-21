@@ -102,6 +102,16 @@ public class BattleManager {
         return 0; // fallback (shouldn't happen in normal play)
     }
     
+    private void tryPlayerAttack(int requestingPlayerIndex) {
+        // Check if it's the player phase and if the correct player pressed their attack key
+        if (playerTurn && currentPlayerIndex == requestingPlayerIndex) {
+            playerAttack(); // Call your existing attack logic
+        } else {
+            // Optional: Let them know it isn't their turn
+            battleInfoLabel.setText("It is not " + players[requestingPlayerIndex].getName() + "'s turn to attack!");
+        }
+    }
+    
     private void nextTurn() {
 
         // If player turn phase
@@ -296,8 +306,22 @@ public class BattleManager {
                 }
                 return;
             }
+            double speed = 15.0; // Speed of movement for the 
+
             switch (event.getCode()) {
-                case A -> playerAttack();
+                // --- Player 1 Controls 
+                case W -> player1Sprite.setTranslateY(player1Sprite.getTranslateY() - speed);
+                case S -> player1Sprite.setTranslateY(player1Sprite.getTranslateY() + speed);
+                case A -> player1Sprite.setTranslateX(player1Sprite.getTranslateX() - speed);
+                case D -> player1Sprite.setTranslateX(player1Sprite.getTranslateX() + speed);
+                case E -> tryPlayerAttack(0); // Pass index 0 for Player 1
+
+                // --- Player 2 Controls 
+                case I -> player2Sprite.setTranslateY(player2Sprite.getTranslateY() - speed);
+                case K -> player2Sprite.setTranslateY(player2Sprite.getTranslateY() + speed);
+                case J -> player2Sprite.setTranslateX(player2Sprite.getTranslateX() - speed);
+                case L -> player2Sprite.setTranslateX(player2Sprite.getTranslateX() + speed);
+                case O -> tryPlayerAttack(1); // Pass index 1 for Player 2
                 case H -> playerHeal();
                 case P, ESCAPE -> pauseAction.run();
                 default -> { }
