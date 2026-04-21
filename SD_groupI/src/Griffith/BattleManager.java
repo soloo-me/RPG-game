@@ -123,6 +123,16 @@ public class BattleManager {
         return distance < 3000;	
     }
     
+    private void moveBossTowardTarget(ImageView boss, ImageView target) {
+        double dx = target.getTranslateX() - boss.getTranslateX();
+        double dy = target.getTranslateY() - boss.getTranslateY();
+
+        TranslateTransition move = new TranslateTransition(Duration.seconds(0.4), boss);
+        move.setByX(dx * 0.3);
+        move.setByY(dy * 0.3);
+        move.play();
+    }
+    
     private void nextTurn() {
 
         // If player turn phase
@@ -606,7 +616,8 @@ public class BattleManager {
 
         // Figure out which sprite the boss is aiming at
         ImageView targetSprite = (target == players[0]) ? player1Sprite : player2Sprite;
-
+        moveBossTowardTarget(bossSprite, targetSprite);
+        
         // Change text to show the boss is attacking
         battleInfoLabel.setText(enemy.getName() + " is firing a beam at " + target.getName() + "!");
 
