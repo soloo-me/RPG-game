@@ -72,6 +72,9 @@ public class BattleManager {
     private Label player2StaminaLabel = new Label();
     private String difficulty = "HARD";
     
+    private double p1DirX = 1, p1DirY = 0;
+    private double p2DirX = 1, p2DirY = 0;
+    
     private void updateTurnIndicator() {
 
         player1Sprite.setEffect(null);
@@ -365,17 +368,41 @@ public class BattleManager {
 
             switch (event.getCode()) {
                 // --- Player 1 Controls 
-                case W -> player1Sprite.setTranslateY(player1Sprite.getTranslateY() - speed);
-                case S -> player1Sprite.setTranslateY(player1Sprite.getTranslateY() + speed);
-                case A -> player1Sprite.setTranslateX(player1Sprite.getTranslateX() - speed);
-                case D -> player1Sprite.setTranslateX(player1Sprite.getTranslateX() + speed);
-                case E -> tryPlayerAttack(0); // Pass index 0 for Player 1
+            	case W -> {
+            		player1Sprite.setTranslateY(player1Sprite.getTranslateY() - speed);
+            		p1DirX = 0; p1DirY = -1;
+            	}
+            	case S -> {
+            		player1Sprite.setTranslateY(player1Sprite.getTranslateY() + speed);
+            		p1DirX = 0; p1DirY = 1;
+            	}
+            	case A -> {
+            		player1Sprite.setTranslateX(player1Sprite.getTranslateX() - speed);
+            		p1DirX = -1; p1DirY = 0;
+            	}
+            	case D -> {
+            		player1Sprite.setTranslateX(player1Sprite.getTranslateX() + speed);
+            		p1DirX = 1; p1DirY = 0;
+            	}
+                case E -> tryPlayerAttack(0); 
 
                 // --- Player 2 Controls 
-                case I -> player2Sprite.setTranslateY(player2Sprite.getTranslateY() - speed);
-                case K -> player2Sprite.setTranslateY(player2Sprite.getTranslateY() + speed);
-                case J -> player2Sprite.setTranslateX(player2Sprite.getTranslateX() - speed);
-                case L -> player2Sprite.setTranslateX(player2Sprite.getTranslateX() + speed);
+                case I -> {
+                    player2Sprite.setTranslateY(player2Sprite.getTranslateY() - speed);
+                    p2DirX = 0; p2DirY = -1;
+                }
+                case K -> {
+                    player2Sprite.setTranslateY(player2Sprite.getTranslateY() + speed);
+                    p2DirX = 0; p2DirY = 1;
+                }
+                case J -> {
+                    player2Sprite.setTranslateX(player2Sprite.getTranslateX() - speed);
+                    p2DirX = -1; p2DirY = 0;
+                }
+                case L -> {
+                    player2Sprite.setTranslateX(player2Sprite.getTranslateX() + speed);
+                    p2DirX = 1; p2DirY = 0;
+                }
                 case O -> tryPlayerAttack(1); // Pass index 1 for Player 2
                 case H -> playerHeal();
                 case P, ESCAPE -> pauseAction.run();
