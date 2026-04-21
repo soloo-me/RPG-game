@@ -74,6 +74,11 @@ public class BattleManager {
     
     private double p1DirX = 1, p1DirY = 0;
     private double p2DirX = 1, p2DirY = 0;
+ // Movement boundaries (based on 1000x650 scene)
+    private final double MIN_X = -400;
+    private final double MAX_X = 400;
+    private final double MIN_Y = -250;
+    private final double MAX_Y = 200;
     
     private void updateTurnIndicator() {
 
@@ -168,6 +173,19 @@ public class BattleManager {
         });
 
         delay.play();
+    }
+    
+    private void clampToScreen(ImageView sprite, double minX, double maxX, double minY, double maxY) {
+        double x = sprite.getTranslateX();
+        double y = sprite.getTranslateY();
+
+        if (x < minX) x = minX;
+        if (x > maxX) x = maxX;
+        if (y < minY) y = minY;
+        if (y > maxY) y = maxY;
+
+        sprite.setTranslateX(x);
+        sprite.setTranslateY(y);
     }
     
     private void nextTurn() {
@@ -368,40 +386,48 @@ public class BattleManager {
 
             switch (event.getCode()) {
                 // --- Player 1 Controls 
-            	case W -> {
-            		player1Sprite.setTranslateY(player1Sprite.getTranslateY() - speed);
-            		p1DirX = 0; p1DirY = -1;
-            	}
-            	case S -> {
-            		player1Sprite.setTranslateY(player1Sprite.getTranslateY() + speed);
-            		p1DirX = 0; p1DirY = 1;
-            	}
-            	case A -> {
-            		player1Sprite.setTranslateX(player1Sprite.getTranslateX() - speed);
-            		p1DirX = -1; p1DirY = 0;
-            	}
-            	case D -> {
-            		player1Sprite.setTranslateX(player1Sprite.getTranslateX() + speed);
-            		p1DirX = 1; p1DirY = 0;
-            	}
+            case W -> {
+                player1Sprite.setTranslateY(player1Sprite.getTranslateY() - speed);
+                p1DirX = 0; p1DirY = -1;
+                clampToScreen(player1Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+            }
+            case S -> {
+                player1Sprite.setTranslateY(player1Sprite.getTranslateY() + speed);
+                p1DirX = 0; p1DirY = 1;
+                clampToScreen(player1Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+            }
+            case A -> {
+                player1Sprite.setTranslateX(player1Sprite.getTranslateX() - speed);
+                p1DirX = -1; p1DirY = 0;
+                clampToScreen(player1Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+            }
+            case D -> {
+                player1Sprite.setTranslateX(player1Sprite.getTranslateX() + speed);
+                p1DirX = 1; p1DirY = 0;
+                clampToScreen(player1Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+            }
                 case E -> tryPlayerAttack(0); 
 
                 // --- Player 2 Controls 
                 case I -> {
                     player2Sprite.setTranslateY(player2Sprite.getTranslateY() - speed);
                     p2DirX = 0; p2DirY = -1;
+                    clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
                 }
                 case K -> {
                     player2Sprite.setTranslateY(player2Sprite.getTranslateY() + speed);
                     p2DirX = 0; p2DirY = 1;
+                    clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
                 }
                 case J -> {
                     player2Sprite.setTranslateX(player2Sprite.getTranslateX() - speed);
                     p2DirX = -1; p2DirY = 0;
+                    clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
                 }
                 case L -> {
                     player2Sprite.setTranslateX(player2Sprite.getTranslateX() + speed);
                     p2DirX = 1; p2DirY = 0;
+                    clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
                 }
                 case O -> tryPlayerAttack(1); // Pass index 1 for Player 2
                 case H -> playerHeal();
