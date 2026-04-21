@@ -133,6 +133,40 @@ public class BattleManager {
         move.play();
     }
     
+    private void telegraphAttack(ImageView targetSprite, Runnable onHit) {
+
+        Bounds bounds = targetSprite.getBoundsInParent();
+
+        double x = bounds.getMinX() + bounds.getWidth() / 2;
+        double y = bounds.getMinY() + bounds.getHeight() / 2;
+
+        // 🔴 Warning circle
+        javafx.scene.shape.Circle warning = new javafx.scene.shape.Circle(80, Color.RED);
+        warning.setOpacity(0.3);
+        warning.setLayoutX(x);
+        warning.setLayoutY(y);
+
+        animationLayer.getChildren().add(warning);
+
+        // ⏳ Delay before hit
+        PauseTransition delay = new PauseTransition(Duration.seconds(1));
+
+        delay.setOnFinished(e -> {
+            animationLayer.getChildren().remove(warning);
+
+            // Check if player is still inside area
+            if (warning.getBoundsInParent().intersects(targetSprite.getBoundsInParent())) {
+                onHit.run(); // apply damage
+                playExplosionEffect(targetSprite);
+                playHitEffect(targetSprite);
+            } else {
+                battleInfoLabel.setText("Attack missed!");
+            }
+        });
+
+        delay.play();
+    }
+    
     private void nextTurn() {
 
         // If player turn phase
@@ -622,7 +656,7 @@ public class BattleManager {
         battleInfoLabel.setText(enemy.getName() + " is firing a beam at " + target.getName() + "!");
 
         // FIRE THE BEAM! 
-        animateBossAttack(bossSprite, targetSprite, () -> {
+        telegraphAttack(targetSprite, () -> {
             
             // --- EVERYTHING IN HERE HAPPENS AFTER THE BEAM HITS ---
             
