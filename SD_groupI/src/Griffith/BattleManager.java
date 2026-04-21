@@ -112,6 +112,17 @@ public class BattleManager {
         }
     }
     
+    private boolean isInRange(ImageView a, ImageView b) {
+        Bounds ba = a.getBoundsInParent();
+        Bounds bb = b.getBoundsInParent();
+
+        double dx = (ba.getMinX() + ba.getWidth() / 2) - (bb.getMinX() + bb.getWidth() / 2);
+        double dy = (ba.getMinY() + ba.getHeight() / 2) - (bb.getMinY() + bb.getHeight() / 2);
+
+        double distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < 3000;	
+    }
+    
     private void nextTurn() {
 
         // If player turn phase
@@ -493,6 +504,11 @@ public class BattleManager {
 
     	// Continue with attack
     	ImageView attackerSprite = (currentPlayerIndex == 0) ? player1Sprite : player2Sprite;
+    	if (!isInRange(attackerSprite, bossSprite)) {
+    	    battleInfoLabel.setText(attacker.getName() + " is too far away!");
+    	    return;
+    	}
+    	
         battleInfoLabel.setText(attacker.getName() + " launches an attack!");
 
         // 2. Trigger the Animation
