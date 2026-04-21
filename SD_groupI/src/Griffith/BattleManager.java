@@ -360,27 +360,11 @@ public class BattleManager {
     
     private void animatePlayerAttack(ImageView attacker, ImageView target, Runnable onImpact) {
 
-        // Move forward
-        TranslateTransition forward = new TranslateTransition(Duration.millis(200), attacker);
-        forward.setByX(100);
-        forward.setByY(-20);
-
-        // Move back
-        TranslateTransition back = new TranslateTransition(Duration.millis(200), attacker);
-        back.setByX(-100);
-        back.setByY(20);
-
-        forward.setOnFinished(e -> {
-            // Apply damage when close
+            
             onImpact.run();
             playHitEffect(target);
+     }
 
-            // Go back after hit
-            back.play();
-        });
-
-        forward.play();
-    }
     
     private void playHitEffect(ImageView target) {
         // Flash effect
