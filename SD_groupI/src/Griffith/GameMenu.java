@@ -166,6 +166,25 @@ public class GameMenu extends Application {
             "-fx-border-color: #c89b3c;" +
             "-fx-border-width: 2;"
         );
+        difficultyBox.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item);
+                setTextFill(javafx.scene.paint.Color.WHITE);
+                setStyle("-fx-background-color: #3b2a1a;");
+            }
+        });
+
+        difficultyBox.setCellFactory(listView -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item);
+                setTextFill(javafx.scene.paint.Color.WHITE);
+                setStyle("-fx-background-color: #3b2a1a;");
+            }
+        });
 
         Button confirmBtn = new Button("Confirm Selection");
         Button backBtn = new Button("Back");
