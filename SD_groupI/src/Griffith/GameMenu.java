@@ -31,7 +31,10 @@ public class GameMenu extends Application {
     private Label statsLabel = new Label("Stats will appear here");
 
     private BattleManager battleManager = new BattleManager();
-    
+    private VBox archerCard;
+    private VBox brawlerCard;
+    private VBox mageCard;
+    private VBox tankCard;
 
     @Override
     public void start(Stage primaryStage) {
@@ -121,10 +124,10 @@ public class GameMenu extends Application {
         Mage mage = new Mage("Mage");
         Tank tank = new Tank("Tank");
 
-        VBox archerCard = createCharacterCard(archer);
-        VBox brawlerCard = createCharacterCard(brawler);
-        VBox mageCard = createCharacterCard(mage);
-        VBox tankCard = createCharacterCard(tank);
+        archerCard = createCharacterCard(archer);
+        brawlerCard = createCharacterCard(brawler);
+        mageCard = createCharacterCard(mage);
+        tankCard = createCharacterCard(tank);
 
         HBox characterRow = new HBox(18, archerCard, brawlerCard, mageCard, tankCard);
         characterRow.setAlignment(Pos.CENTER);
@@ -213,8 +216,6 @@ public class GameMenu extends Application {
 
         // Background layer
         ImageView bg = new ImageView(new Image("file:pictures/Game_background.png"));
-        bg.setFitWidth(1000);
-        bg.setFitHeight(650);
         bg.setPreserveRatio(false);
 
         Pane overlay = new Pane();
@@ -233,6 +234,10 @@ public class GameMenu extends Application {
         BorderPane.setMargin(statsBox, new Insets(20));
 
         StackPane root = new StackPane(bg, overlay, content);
+        bg.fitWidthProperty().bind(root.widthProperty());
+        bg.fitHeightProperty().bind(root.heightProperty());
+        overlay.prefWidthProperty().bind(root.widthProperty());
+        overlay.prefHeightProperty().bind(root.heightProperty());
 
         Scene scene = new Scene(root, 1000, 650);
         scene.setOnKeyPressed(event -> {
@@ -249,31 +254,88 @@ public class GameMenu extends Application {
 
         return scene;
     }
-    
     private VBox createCharacterCard(BaseCharacter character) {
         Label nameLabel = new Label(character.getName());
         nameLabel.setFont(Font.font(18));
+        nameLabel.setStyle(
+            "-fx-text-fill: #ffd36b;" +
+            "-fx-font-weight: bold;" +
+            "-fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);"
+        );
 
         Label hp = new Label("HP: " + character.getHp());
+        hp.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
         Label atk = new Label("ATK: " + character.getAttack());
+        atk.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
 
         Button selectBtn = new Button("Select");
+        selectBtn.setPrefWidth(100);
+
+        VBox card = new VBox(10, nameLabel, hp, atk, selectBtn);
+        card.setAlignment(Pos.CENTER);
+        card.setPadding(new Insets(20));
+        card.setPrefWidth(160);
+        card.setMinHeight(220);
+
+        Runnable updateCardAppearance = () -> {
+            boolean selected = (selectedCharacter1 == character || selectedCharacter2 == character);
+
+            if (selected) {
+                card.setStyle(
+                    "-fx-background-color: rgba(72, 48, 20, 0.92);" +
+                    "-fx-border-color: #ffd36b;" +
+                    "-fx-border-width: 4;" +
+                    "-fx-background-radius: 14;" +
+                    "-fx-border-radius: 14;" +
+                    "-fx-effect: dropshadow(gaussian, rgba(255,211,107,0.35), 14, 0.4, 0, 0);"
+                );
+
+                selectBtn.setText("Selected");
+                selectBtn.setStyle(
+                    "-fx-background-color: linear-gradient(#b88a2a, #7a5818);" +
+                    "-fx-text-fill: white;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-border-color: #fff0b3;" +
+                    "-fx-border-width: 2;" +
+                    "-fx-border-radius: 10;" +
+                    "-fx-padding: 8 14 8 14;"
+                );
+            } else {
+                card.setStyle(
+                    "-fx-background-color: rgba(32, 22, 14, 0.82);" +
+                    "-fx-border-color: #8b5a2b;" +
+                    "-fx-border-width: 3;" +
+                    "-fx-background-radius: 14;" +
+                    "-fx-border-radius: 14;" +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 10, 0.3, 0, 4);"
+                );
+
+                selectBtn.setText("Select");
+                selectBtn.setStyle(
+                    "-fx-background-color: linear-gradient(#6b4f2a, #3e2d18);" +
+                    "-fx-text-fill: white;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-border-color: #d6b36a;" +
+                    "-fx-border-width: 2;" +
+                    "-fx-border-radius: 10;" +
+                    "-fx-padding: 8 14 8 14;"
+                );
+            }
+        };
+
         selectBtn.setOnAction(e -> {
-            // If this character is already selected, deselect it
             if (selectedCharacter1 == character) {
                 selectedCharacter1 = null;
-            } 
-            else if (selectedCharacter2 == character) {
+            } else if (selectedCharacter2 == character) {
                 selectedCharacter2 = null;
-            } 
-            // Otherwise, put it into the first empty slot
-            else if (selectedCharacter1 == null) {
+            } else if (selectedCharacter1 == null) {
                 selectedCharacter1 = character;
-            } 
-            else if (selectedCharacter2 == null) {
+            } else if (selectedCharacter2 == null) {
                 selectedCharacter2 = character;
-            } 
-            else {
+            } else {
                 showAlert("You already selected 2 characters. Deselect one first.");
                 return;
             }
@@ -283,15 +345,47 @@ public class GameMenu extends Application {
 
             selectedNameLabel.setText("Player 1: " + player1Name + " | Player 2: " + player2Name);
             statsLabel.setText(buildStatsText(character));
+
+            refreshCharacterCards();
         });
 
-        VBox card = new VBox(10, nameLabel, hp, atk, selectBtn);
-        card.setAlignment(Pos.CENTER);
-        card.setPadding(new Insets(20));
-        card.setPrefWidth(150);
-        card.setStyle("-fx-border-color: gray; -fx-border-width: 2; -fx-background-color: #efefef;");
+        card.setOnMouseEntered(e -> {
+            boolean selected = (selectedCharacter1 == character || selectedCharacter2 == character);
+            if (!selected) {
+                card.setStyle(
+                    "-fx-background-color: rgba(48, 32, 18, 0.9);" +
+                    "-fx-border-color: #c89b3c;" +
+                    "-fx-border-width: 3;" +
+                    "-fx-background-radius: 14;" +
+                    "-fx-border-radius: 14;" +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 14, 0.35, 0, 4);"
+                );
+            }
+        });
+
+        card.setOnMouseExited(e -> updateCardAppearance.run());
+
+        // set initial look
+        updateCardAppearance.run();
+
+        // store updater on the node itself so refreshCharacterCards can call it later
+        card.setUserData(updateCardAppearance);
 
         return card;
+    }
+    private void refreshCharacterCards() {
+        if (archerCard != null && archerCard.getUserData() instanceof Runnable updater) {
+            updater.run();
+        }
+        if (brawlerCard != null && brawlerCard.getUserData() instanceof Runnable updater) {
+            updater.run();
+        }
+        if (mageCard != null && mageCard.getUserData() instanceof Runnable updater) {
+            updater.run();
+        }
+        if (tankCard != null && tankCard.getUserData() instanceof Runnable updater) {
+            updater.run();
+        }
     }
 
     // Settings
