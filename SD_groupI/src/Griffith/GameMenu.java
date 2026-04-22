@@ -274,6 +274,20 @@ public class GameMenu extends Application {
         return scene;
     }
     private VBox createCharacterCard(BaseCharacter character) {
+        String imagePath = "";
+
+        if (character instanceof Archer) {
+            imagePath = "file:pictures/Archer.png";
+        } else if (character instanceof Brawler) {
+            imagePath = "file:pictures/Brawler.png";
+        } else if (character instanceof Mage) {
+            imagePath = "file:pictures/Mage.png";
+        } else if (character instanceof Tank) {
+            imagePath = "file:pictures/Tank.png";
+        }
+
+        ImageView portrait = createPortrait(imagePath);
+
         Label nameLabel = new Label(character.getName());
         nameLabel.setFont(Font.font(18));
         nameLabel.setStyle(
@@ -289,13 +303,13 @@ public class GameMenu extends Application {
         atk.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
 
         Button selectBtn = new Button("Select");
-        selectBtn.setPrefWidth(100);
+        selectBtn.setPrefWidth(110);
 
-        VBox card = new VBox(10, nameLabel, hp, atk, selectBtn);
+        VBox card = new VBox(10, portrait, nameLabel, hp, atk, selectBtn);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(20));
-        card.setPrefWidth(160);
-        card.setMinHeight(220);
+        card.setPrefWidth(180);
+        card.setMinHeight(320);
 
         Runnable updateCardAppearance = () -> {
             boolean selected = (selectedCharacter1 == character || selectedCharacter2 == character);
@@ -384,10 +398,7 @@ public class GameMenu extends Application {
 
         card.setOnMouseExited(e -> updateCardAppearance.run());
 
-        // set initial look
         updateCardAppearance.run();
-
-        // store updater on the node itself so refreshCharacterCards can call it later
         card.setUserData(updateCardAppearance);
 
         return card;
@@ -405,6 +416,17 @@ public class GameMenu extends Application {
         if (tankCard != null && tankCard.getUserData() instanceof Runnable updater) {
             updater.run();
         }
+    }
+    private ImageView createPortrait(String imagePath) {
+        ImageView portrait = new ImageView(new Image(imagePath));
+        portrait.setFitWidth(90);
+        portrait.setFitHeight(90);
+        portrait.setPreserveRatio(true);
+        portrait.setSmooth(true);
+        portrait.setStyle(
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 8, 0.3, 0, 2);"
+        );
+        return portrait;
     }
 
     // Settings
