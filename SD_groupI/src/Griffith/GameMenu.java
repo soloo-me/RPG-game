@@ -147,11 +147,12 @@ public class GameMenu extends Application {
         statsBox.setPadding(new Insets(20));
         statsBox.setPrefWidth(320);
         statsBox.setStyle(
-            "-fx-border-color: #8b5a2b; " +
-            "-fx-border-width: 3; " +
-            "-fx-background-color: rgba(0,0,0,0.65); " +
-            "-fx-background-radius: 12; " +
-            "-fx-border-radius: 12;"
+        	    "-fx-background-color: linear-gradient(to bottom, rgba(40,25,10,0.9), rgba(20,10,5,0.9));" +
+        	    "-fx-border-color: #c89b3c;" +
+        	    "-fx-border-width: 3;" +
+        	    "-fx-background-radius: 14;" +
+        	    "-fx-border-radius: 14;" +
+        	    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 15, 0.4, 0, 5);"
         );
 
         Label difficultyLabel = new Label("Select Difficulty:");
