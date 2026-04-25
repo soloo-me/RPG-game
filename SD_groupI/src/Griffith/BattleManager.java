@@ -542,7 +542,12 @@ public class BattleManager {
         this.currentPlayerIndex = this.players[0].isAlive() ? 0 : 1; // Start with player 1 if alive, otherwise player 2
         updateTurnIndicator();
 
-        battleInfoLabel.setText(players[0].getName() +" and " + players[1].getName() + " enters the battle against " + enemy.getName() + ".\n" + players[currentPlayerIndex].getName() + "'s turn. Press A to attack.");
+        battleInfoLabel.setText(
+        	    players[0].getName() + " and " + players[1].getName() +
+        	    " enter the battle against " + enemy.getName() + ".\n" +
+        	    players[currentPlayerIndex].getName() + "'s turn.\n" +
+        	    "Controls: W=Up, S=Down, A=Back, D=Forward, E=Attack"
+        	);
         
         player1Sprite.setImage(getSpriteForCharacter(players[0]));
         player2Sprite.setImage(getSpriteForCharacter(players[1]));
