@@ -157,7 +157,7 @@ public class BattleManager {
         animationLayer.getChildren().add(warning);
 
         // ⏳ Delay before hit
-        PauseTransition delay = new PauseTransition(Duration.seconds(1));
+        PauseTransition delay = new PauseTransition(Duration.seconds(2));
 
         delay.setOnFinished(e -> {
             animationLayer.getChildren().remove(warning);
@@ -710,46 +710,52 @@ public class BattleManager {
 
         // FIRE THE BEAM! 
         telegraphAttack(targetSprite, () -> {
-            
-            // --- EVERYTHING IN HERE HAPPENS AFTER THE BEAM HITS ---
-            
-        	int damage = enemy.calculateAttack();
 
-        	if (difficulty.equals("EASY")) {
-        	    damage = Math.max(5, damage - 5);
-        	} else if (difficulty.equals("HARD")) {
-        	    damage += 15;
-        	}if (difficulty.equals("HARD") && Math.random() < 0.3) {
-        	    damage *= 2;
-        	    battleInfoLabel.setText(enemy.getName() + " lands a CRITICAL HIT!");
-        	}
-            int before = target.getHp();
-            target.takeDamage(damage);
-            int dealt = before - target.getHp();
+            // AFTER warning → fire attack happens
+            animateBossAttack(bossSprite, targetSprite, () -> {
 
-            if (dealt <= 0) {
-                battleInfoLabel.setText(battleInfoLabel.getText() + "\nIt deals no damage!");
-            } else {
-                battleInfoLabel.setText(battleInfoLabel.getText() + "\nDirect hit for " + dealt + " damage!");
-            }
+                int damage = enemy.calculateAttack();
 
-            updateBattleUi();
+                if (difficulty.equals("EASY")) {
+                    damage = Math.max(5, damage - 5);
+                } else if (difficulty.equals("HARD")) {
+                    damage += 15;
+                }
 
-            if (!anyPlayerAlive()) {
-                battleInfoLabel.setText(battleInfoLabel.getText() + "\nBoth heroes have fallen. Game over.");
-                gameStarted = false;
-                showEndGameScreen(false);
-                return;
-            }
+                if (difficulty.equals("HARD") && Math.random() < 0.3) {
+                    damage *= 2;
+                    battleInfoLabel.setText(enemy.getName() + " lands a CRITICAL HIT!");
+                }
 
-            // Pass the turn back to the player
-            playerTurn = true;
-            currentPlayerIndex = firstAlivePlayerIndex();
-            updateTurnIndicator();
-            battleInfoLabel.setText(
+                int before = target.getHp();
+                target.takeDamage(damage);
+                int dealt = before - target.getHp();
+
+                if (dealt <= 0) {
+                    battleInfoLabel.setText(battleInfoLabel.getText() + "\nIt deals no damage!");
+                } else {
+                    battleInfoLabel.setText(battleInfoLabel.getText() + "\nDirect hit for " + dealt + " damage!");
+                }
+
+                updateBattleUi();
+
+                if (!anyPlayerAlive()) {
+                    battleInfoLabel.setText(battleInfoLabel.getText() + "\nBoth heroes have fallen. Game over.");
+                    gameStarted = false;
+                    showEndGameScreen(false);
+                    return;
+                }
+
+                // back to player turn
+                playerTurn = true;
+                currentPlayerIndex = firstAlivePlayerIndex();
+                updateTurnIndicator();
+
+                battleInfoLabel.setText(
                     battleInfoLabel.getText() + "\n" +
                     players[currentPlayerIndex].getName() + "'s turn."
-            ); 
+                );
+            });
         });
     }
     
