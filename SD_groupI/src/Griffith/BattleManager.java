@@ -28,6 +28,9 @@ import javafx.geometry.Bounds;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import java.io.File;
 
 
 public class BattleManager {
@@ -74,6 +77,7 @@ public class BattleManager {
     
     private double p1DirX = 1, p1DirY = 0;
     private double p2DirX = 1, p2DirY = 0;
+    private MediaPlayer battleMusic;
  
     
     private void updateTurnIndicator() {
@@ -448,6 +452,32 @@ public class BattleManager {
         // 5. Return the finished scene
         return battleScene;
     }
+    private void startBattleMusic() {
+        try {
+            File musicFile = new File("sounds/BattleMusic.mp3");
+
+            if (!musicFile.exists()) {
+                System.out.println("Music file not found: " + musicFile.getAbsolutePath());
+                return;
+            }
+
+            Media music = new Media(musicFile.toURI().toString());
+
+            battleMusic = new MediaPlayer(music);
+            battleMusic.setCycleCount(MediaPlayer.INDEFINITE); // loop forever
+            battleMusic.setVolume(0.5); // 50% volume
+            battleMusic.play();
+
+        } catch (Exception e) {
+            System.out.println("Failed to load battle music.");
+            e.printStackTrace();
+        }
+    }
+    private void stopBattleMusic() {
+        if (battleMusic != null) {
+            battleMusic.stop();
+        }
+    }
     
     private void animateBossAttack(ImageView sourceSprite, ImageView targetSprite, Runnable onImpact) {
 
@@ -550,6 +580,7 @@ public class BattleManager {
         this.playerTurn = true;
         this.currentPlayerIndex = this.players[0].isAlive() ? 0 : 1; // Start with player 1 if alive, otherwise player 2
         updateTurnIndicator();
+        startBattleMusic();
 
         battleInfoLabel.setText(
         	    players[0].getName() + " and " + players[1].getName() +
@@ -637,6 +668,7 @@ public class BattleManager {
             if (!enemy.isAlive()) {
                 battleInfoLabel.setText("Victory! The " + enemy.getName() + " has been defeated!");
                 gameStarted = false;
+                stopBattleMusic();
                 showEndGameScreen(true);
             } else {
                 // Logic to switch to player 2 or enemy turn
@@ -684,6 +716,7 @@ public class BattleManager {
         if (!anyPlayerAlive()) { 
             battleInfoLabel.setText("Both heroes have fallen. Game over."); 
             gameStarted = false; 
+            stopBattleMusic();
             showEndGameScreen(false); 
             return; 
         }
@@ -712,6 +745,7 @@ public class BattleManager {
         if (target == null) { 
             battleInfoLabel.setText("Both heroes have fallen. Game over."); 
             gameStarted = false;
+            stopBattleMusic();
             showEndGameScreen(false);
             return; 
         }
