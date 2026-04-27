@@ -409,22 +409,22 @@ public class BattleManager {
                 case E -> tryPlayerAttack(0); 
 
                 // --- Player 2 Controls 
-                case I -> {
+                case UP -> {
                     player2Sprite.setTranslateY(player2Sprite.getTranslateY() - speed);
                     p2DirX = 0; p2DirY = -1;
                     clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
                 }
-                case K -> {
+                case DOWN -> {
                     player2Sprite.setTranslateY(player2Sprite.getTranslateY() + speed);
                     p2DirX = 0; p2DirY = 1;
                     clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
                 }
-                case J -> {
+                case LEFT -> {
                     player2Sprite.setTranslateX(player2Sprite.getTranslateX() - speed);
                     p2DirX = -1; p2DirY = 0;
                     clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
                 }
-                case L -> {
+                case RIGHT -> {
                     player2Sprite.setTranslateX(player2Sprite.getTranslateX() + speed);
                     p2DirX = 1; p2DirY = 0;
                     clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
