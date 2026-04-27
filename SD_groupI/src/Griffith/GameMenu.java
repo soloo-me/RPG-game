@@ -10,6 +10,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 public class GameMenu extends Application {
@@ -67,21 +68,67 @@ public class GameMenu extends Application {
         window.show();
     }
 
+    // --- UTILITY METHOD FOR STYLING MENU BUTTONS ---
+    private void styleMenuButton(Button btn) {
+        btn.setPrefWidth(250);
+        btn.setPrefHeight(45);
+        btn.setFont(Font.font("Verdana", FontWeight.BOLD, 16));
+        btn.setStyle(
+            "-fx-background-color: linear-gradient(#6b4f2a, #3e2d18);" +
+            "-fx-text-fill: white;" +
+            "-fx-background-radius: 10;" +
+            "-fx-border-color: #d6b36a;" +
+            "-fx-border-width: 2;" +
+            "-fx-border-radius: 10;" +
+            "-fx-cursor: hand;"
+        );
+
+        // Hover Effects
+        btn.setOnMouseEntered(e -> btn.setStyle(
+            "-fx-background-color: linear-gradient(#8b6f4a, #5e4d38);" +
+            "-fx-text-fill: white;" +
+            "-fx-background-radius: 10;" +
+            "-fx-border-color: #ffd36b;" +
+            "-fx-border-width: 2;" +
+            "-fx-border-radius: 10;" +
+            "-fx-cursor: hand;"
+        ));
+
+        btn.setOnMouseExited(e -> btn.setStyle(
+            "-fx-background-color: linear-gradient(#6b4f2a, #3e2d18);" +
+            "-fx-text-fill: white;" +
+            "-fx-background-radius: 10;" +
+            "-fx-border-color: #d6b36a;" +
+            "-fx-border-width: 2;" +
+            "-fx-border-radius: 10;" +
+            "-fx-cursor: hand;"
+        ));
+    }
+
     private Scene createMainMenuScene() {
-        Label title = new Label("Ooga Booga");
-        title.setFont(Font.font(34));
+        Label title = new Label("OOGA BOOGA");
+        title.setFont(Font.font("Verdana", FontWeight.BOLD, 55));
+        title.setStyle(
+            "-fx-text-fill: #ffd36b;" +
+            "-fx-effect: dropshadow(gaussian, black, 12, 0.7, 3, 3);"
+        );
 
         Label subtitle = new Label("Keyboard for gameplay, mouse for menus");
+        subtitle.setFont(Font.font("Verdana", FontWeight.NORMAL, 16));
+        subtitle.setStyle(
+            "-fx-text-fill: #e0e0e0;" +
+            "-fx-effect: dropshadow(gaussian, black, 5, 0.5, 1, 1);"
+        );
 
         Button startBtn = new Button("Start Game");
         Button pauseBtn = new Button("Pause / Resume");
         Button settingsBtn = new Button("Settings");
         Button exitBtn = new Button("Exit");
 
-        startBtn.setPrefWidth(220);
-        pauseBtn.setPrefWidth(220);
-        settingsBtn.setPrefWidth(220);
-        exitBtn.setPrefWidth(220);
+        styleMenuButton(startBtn);
+        styleMenuButton(pauseBtn);
+        styleMenuButton(settingsBtn);
+        styleMenuButton(exitBtn);
 
         startBtn.setOnAction(e -> window.setScene(characterSelectScene));
 
@@ -98,10 +145,21 @@ public class GameMenu extends Application {
         settingsBtn.setOnAction(e -> window.setScene(settingsScene));
         exitBtn.setOnAction(e -> window.close());
 
-        VBox layout = new VBox(18, title, subtitle, startBtn, pauseBtn, settingsBtn, exitBtn);
+        VBox layout = new VBox(20, title, subtitle, new Region(), startBtn, pauseBtn, settingsBtn, exitBtn);
         layout.setAlignment(Pos.CENTER);
+        
+        // Background layer
+        ImageView bg = new ImageView(new Image("file:pictures/Game_background.png"));
+        bg.setPreserveRatio(false);
 
-        Scene scene = new Scene(layout, 1000, 650);
+        Pane overlay = new Pane();
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.65);"); // Darken background to make menu pop
+
+        StackPane root = new StackPane(bg, overlay, layout);
+        bg.fitWidthProperty().bind(root.widthProperty());
+        bg.fitHeightProperty().bind(root.heightProperty());
+
+        Scene scene = new Scene(root, 1000, 650);
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
                 window.close();
@@ -110,6 +168,7 @@ public class GameMenu extends Application {
 
         return scene;
     }
+
     private Scene createCharacterSelectScene() {
         Label title = new Label("Select Your Character");
         title.setFont(Font.font(28));
@@ -274,6 +333,7 @@ public class GameMenu extends Application {
 
         return scene;
     }
+
     private VBox createCharacterCard(BaseCharacter character) {
         String imagePath = "";
 
@@ -404,6 +464,7 @@ public class GameMenu extends Application {
 
         return card;
     }
+
     private void refreshCharacterCards() {
         if (archerCard != null && archerCard.getUserData() instanceof Runnable updater) {
             updater.run();
@@ -418,6 +479,7 @@ public class GameMenu extends Application {
             updater.run();
         }
     }
+
     private ImageView createPortrait(String imagePath) {
         ImageView portrait = new ImageView(new Image(imagePath));
         portrait.setFitWidth(90);
@@ -433,18 +495,25 @@ public class GameMenu extends Application {
     // Settings
     private Scene createSettingsScene() {
         Label title = new Label("Settings");
-        title.setFont(Font.font(28));
+        title.setFont(Font.font("Verdana", FontWeight.BOLD, 36));
+        title.setStyle("-fx-text-fill: #ffd36b; -fx-effect: dropshadow(gaussian, black, 8, 0.6, 2, 2);");
 
         Label volumeLabel = new Label("Volume");
+        volumeLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
         Slider volumeSlider = new Slider(0, 100, volume * 100);
         volumeSlider.setShowTickLabels(true);
         volumeSlider.setShowTickMarks(true);
+        volumeSlider.setMaxWidth(300);
 
         CheckBox musicCheckbox = new CheckBox("Music On");
         musicCheckbox.setSelected(musicOn);
+        musicCheckbox.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
 
         Button saveBtn = new Button("Save");
         Button backBtn = new Button("Back");
+        
+        styleMenuButton(saveBtn);
+        styleMenuButton(backBtn);
 
         saveBtn.setOnAction(e -> {
             volume = volumeSlider.getValue() / 100.0;
@@ -460,11 +529,22 @@ public class GameMenu extends Application {
             }
         });
 
-        VBox layout = new VBox(20, title, volumeLabel, volumeSlider, musicCheckbox, saveBtn, backBtn);
+        VBox layout = new VBox(25, title, volumeLabel, volumeSlider, musicCheckbox, saveBtn, backBtn);
         layout.setAlignment(Pos.CENTER);
         layout.setPadding(new Insets(30));
 
-        Scene scene = new Scene(layout, 1000, 650);
+        // Background layer
+        ImageView bg = new ImageView(new Image("file:pictures/Game_background.png"));
+        bg.setPreserveRatio(false);
+
+        Pane overlay = new Pane();
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.7);"); // Dark overlay
+
+        StackPane root = new StackPane(bg, overlay, layout);
+        bg.fitWidthProperty().bind(root.widthProperty());
+        bg.fitHeightProperty().bind(root.heightProperty());
+
+        Scene scene = new Scene(root, 1000, 650);
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
                 if (battleManager.isGamePaused()) {
@@ -479,12 +559,20 @@ public class GameMenu extends Application {
     }
 
     private Scene createPauseScene() {
-        Label title = new Label("Paused");
-        title.setFont(Font.font(28));
+        Label title = new Label("GAME PAUSED");
+        title.setFont(Font.font("Verdana", FontWeight.BOLD, 46));
+        title.setStyle(
+            "-fx-text-fill: #ffd36b;" +
+            "-fx-effect: dropshadow(gaussian, black, 10, 0.7, 2, 2);"
+        );
 
         Button resumeBtn = new Button("Resume");
         Button settingsBtn = new Button("Settings");
         Button mainMenuBtn = new Button("Main Menu");
+
+        styleMenuButton(resumeBtn);
+        styleMenuButton(settingsBtn);
+        styleMenuButton(mainMenuBtn);
 
         resumeBtn.setOnAction(e -> resumeGame());
         settingsBtn.setOnAction(e -> window.setScene(settingsScene));
@@ -492,10 +580,21 @@ public class GameMenu extends Application {
             window.setScene(mainMenuScene);
         });
 
-        VBox layout = new VBox(18, title, resumeBtn, settingsBtn, mainMenuBtn);
+        VBox layout = new VBox(25, title, new Region(), resumeBtn, settingsBtn, mainMenuBtn);
         layout.setAlignment(Pos.CENTER);
 
-        Scene scene = new Scene(layout, 1000, 650);
+        // Background layer
+        ImageView bg = new ImageView(new Image("file:pictures/Game_background.png"));
+        bg.setPreserveRatio(false);
+
+        Pane overlay = new Pane();
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.8);"); // Extra dark for pause effect
+
+        StackPane root = new StackPane(bg, overlay, layout);
+        bg.fitWidthProperty().bind(root.widthProperty());
+        bg.fitHeightProperty().bind(root.heightProperty());
+
+        Scene scene = new Scene(root, 1000, 650);
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE || event.getCode() == KeyCode.P) {
                 resumeGame();
