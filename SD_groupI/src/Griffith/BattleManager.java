@@ -497,6 +497,25 @@ public class BattleManager {
             }
         }
     }
+    private void playSoundEffect(String fileName) {
+        try {
+            File soundFile = new File("sounds/" + fileName);
+
+            if (!soundFile.exists()) {
+                System.out.println("Sound effect not found: " + soundFile.getAbsolutePath());
+                return;
+            }
+
+            Media sound = new Media(soundFile.toURI().toString());
+            MediaPlayer soundPlayer = new MediaPlayer(sound);
+            soundPlayer.setVolume(volume);
+            soundPlayer.play();
+
+        } catch (Exception e) {
+            System.out.println("Failed to play sound effect: " + fileName);
+            e.printStackTrace();
+        }
+    }
     
     private void animateBossAttack(ImageView sourceSprite, ImageView targetSprite, Runnable onImpact) {
 
@@ -671,6 +690,7 @@ public class BattleManager {
     	}
     	
         battleInfoLabel.setText(attacker.getName() + " launches an attack!");
+        playSoundEffect("AttackSound.mp3");
 
         // 2. Trigger the Animation
         playSlashProjectile(attackerSprite, bossSprite);
@@ -728,6 +748,7 @@ public class BattleManager {
 
         battleInfoLabel.setText(currentPlayer.getName() + " heals for " + actualHeal + " HP."); 
         updateBattleUi();
+        playSoundEffect("HealSound.mp3");
 
         nextTurnAfterPlayerAction(); 
     }
@@ -775,6 +796,7 @@ public class BattleManager {
         
         // Change text to show the boss is attacking
         battleInfoLabel.setText(enemy.getName() + " is firing a beam at " + target.getName() + "!");
+        playSoundEffect("BossAttack.mp3");
 
         // FIRE THE BEAM! 
         telegraphAttack(targetSprite, () -> {
