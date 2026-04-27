@@ -171,7 +171,10 @@ public class BattleManager {
         delay.setOnFinished(e -> {
             animationLayer.getChildren().remove(warning);
 
-            if (warning.getBoundsInParent().intersects(targetSprite.getBoundsInParent())) {
+            Bounds warningBounds = warning.localToScene(warning.getBoundsInLocal());
+            Bounds targetBounds = targetSprite.localToScene(targetSprite.getBoundsInLocal());
+
+            if (warningBounds.intersects(targetBounds)) {
                 // HIT SUCCESSFUL
                 onHit.run(); 
                 playExplosionEffect(targetSprite);
