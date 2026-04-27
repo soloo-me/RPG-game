@@ -74,11 +74,7 @@ public class BattleManager {
     
     private double p1DirX = 1, p1DirY = 0;
     private double p2DirX = 1, p2DirY = 0;
- // Movement boundaries (based on 1000x650 scene)
-    private final double MIN_X = -400;
-    private final double MAX_X = 400;
-    private final double MIN_Y = -250;
-    private final double MAX_Y = 200;
+ 
     
     private void updateTurnIndicator() {
 
@@ -138,6 +134,9 @@ public class BattleManager {
         TranslateTransition move = new TranslateTransition(Duration.seconds(0.4), boss);
         move.setByX(dx * 0.3);
         move.setByY(dy * 0.3);
+
+        move.setOnFinished(e -> clampToBattleBounds(boss, boss.getScene()));
+
         move.play();
     }
     
@@ -152,7 +151,7 @@ public class BattleManager {
         double localX = animationLayer.sceneToLocal(x, y).getX();
         double localY = animationLayer.sceneToLocal(x, y).getY();
         
-        // 🔴 Warning circle
+        //  Warning circle
         javafx.scene.shape.Circle warning = new javafx.scene.shape.Circle(80, Color.RED);
         warning.setOpacity(0.3);
         warning.setLayoutX(localX);
@@ -160,7 +159,7 @@ public class BattleManager {
 
         animationLayer.getChildren().add(warning);
 
-        // ⏳ Delay before hit
+        //  Delay before hit
         PauseTransition delay = new PauseTransition(Duration.seconds(2));
 
         delay.setOnFinished(e -> {
@@ -179,41 +178,31 @@ public class BattleManager {
         delay.play();
     }
     
-    private void clampToScreen(ImageView sprite, double minX, double maxX, double minY, double maxY) {
-        double x = sprite.getTranslateX();
-        double y = sprite.getTranslateY();
+    private void clampToBattleBounds(ImageView sprite, Scene scene) {
+        Bounds bounds = sprite.localToScene(sprite.getBoundsInLocal());
 
-        if (x < minX) x = minX;
-        if (x > maxX) x = maxX;
-        if (y < minY) y = minY;
-        if (y > maxY) y = maxY;
+        double dx = 0;
+        double dy = 0;
 
-        sprite.setTranslateX(x);
-        sprite.setTranslateY(y);
-    }
-    
-    private void nextTurn() {
+        double minX = 0;
+        double maxX = scene.getWidth();
+        double minY = 0;
+        double maxY = scene.getHeight();
 
-        // If player turn phase
-        if (playerTurn) {
-
-            // switch between player 1 and player 2
-            if (currentPlayerIndex == 0 && players[1] != null && players[1].isAlive()) {
-                currentPlayerIndex = 1;
-            } 
-            else {
-                // move to enemy turn
-                playerTurn = false;
-            }
+        if (bounds.getMinX() < minX) {
+            dx = minX - bounds.getMinX();
+        } else if (bounds.getMaxX() > maxX) {
+            dx = maxX - bounds.getMaxX();
         }
 
-        // Enemy turn
-        if (!playerTurn) {
-            enemyTurn();
-            return;
+        if (bounds.getMinY() < minY) {
+            dy = minY - bounds.getMinY();
+        } else if (bounds.getMaxY() > maxY) {
+            dy = maxY - bounds.getMaxY();
         }
 
-        updateTurnIndicator();
+        sprite.setTranslateX(sprite.getTranslateX() + dx);
+        sprite.setTranslateY(sprite.getTranslateY() + dy);
     }
     
     
@@ -393,22 +382,22 @@ public class BattleManager {
             case W -> {
                 player1Sprite.setTranslateY(player1Sprite.getTranslateY() - speed);
                 p1DirX = 0; p1DirY = -1;
-                clampToScreen(player1Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+                clampToBattleBounds(player1Sprite, battleScene);
             }
             case S -> {
                 player1Sprite.setTranslateY(player1Sprite.getTranslateY() + speed);
                 p1DirX = 0; p1DirY = 1;
-                clampToScreen(player1Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+                clampToBattleBounds(player1Sprite, battleScene);
             }
             case A -> {
                 player1Sprite.setTranslateX(player1Sprite.getTranslateX() - speed);
                 p1DirX = -1; p1DirY = 0;
-                clampToScreen(player1Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+                clampToBattleBounds(player1Sprite, battleScene);
             }
             case D -> {
                 player1Sprite.setTranslateX(player1Sprite.getTranslateX() + speed);
                 p1DirX = 1; p1DirY = 0;
-                clampToScreen(player1Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+                clampToBattleBounds(player1Sprite, battleScene);
             }
                 case E -> tryPlayerAttack(0); 
 
@@ -416,22 +405,22 @@ public class BattleManager {
                 case UP -> {
                     player2Sprite.setTranslateY(player2Sprite.getTranslateY() - speed);
                     p2DirX = 0; p2DirY = -1;
-                    clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+                    clampToBattleBounds(player2Sprite, battleScene);
                 }
                 case DOWN -> {
                     player2Sprite.setTranslateY(player2Sprite.getTranslateY() + speed);
                     p2DirX = 0; p2DirY = 1;
-                    clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+                    clampToBattleBounds(player2Sprite, battleScene);
                 }
                 case LEFT -> {
                     player2Sprite.setTranslateX(player2Sprite.getTranslateX() - speed);
                     p2DirX = -1; p2DirY = 0;
-                    clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+                    clampToBattleBounds(player2Sprite, battleScene);
                 }
                 case RIGHT -> {
                     player2Sprite.setTranslateX(player2Sprite.getTranslateX() + speed);
                     p2DirX = 1; p2DirY = 0;
-                    clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
+                    clampToBattleBounds(player2Sprite, battleScene);
                 }
                 case SHIFT -> tryPlayerAttack(1); // Pass index 1 for Player 2
                 case H -> playerHeal();
@@ -635,9 +624,9 @@ public class BattleManager {
                 showEndGameScreen(true);
             } else {
                 // Logic to switch to player 2 or enemy turn
-                if (currentPlayerIndex == 0 && players[1] != null && players[1].isAlive()) {
-                	nextTurn();
-                    battleInfoLabel.setText(battleInfoLabel.getText() + "\n" + players[1].getName() + "'s turn!");
+            	if (currentPlayerIndex == 0 && players[1] != null && players[1].isAlive()) {
+            	    nextTurnAfterPlayerAction();
+            	
                 } else {
                     playerTurn = false;
                     // Add a small delay before boss counter-attacks so it feels natural
