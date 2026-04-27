@@ -161,21 +161,37 @@ public class BattleManager {
 
         //  Delay before hit
         PauseTransition delay = new PauseTransition(Duration.seconds(2));
-
         delay.setOnFinished(e -> {
             animationLayer.getChildren().remove(warning);
 
-            // Check if player is still inside area
             if (warning.getBoundsInParent().intersects(targetSprite.getBoundsInParent())) {
-                onHit.run(); // apply damage
+                // HIT SUCCESSFUL
+                onHit.run(); 
                 playExplosionEffect(targetSprite);
                 playHitEffect(targetSprite);
             } else {
-                battleInfoLabel.setText("Attack missed!");
+                // DODGED
+                battleInfoLabel.setText("The attack missed! " + targetSprite.getId() + " dodged!");
+                // Switch turns here if you don't use the timer method above
+                endEnemyTurn(); 
             }
         });
-
+        
+        
+        
         delay.play();
+    }
+    
+    private void endEnemyTurn() {
+        Platform.runLater(() -> {
+            playerTurn = true;
+            currentPlayerIndex = firstAlivePlayerIndex();
+            updateTurnIndicator();
+             battleInfoLabel.setText(
+					battleInfoLabel.getText() + "\n" +
+					players[currentPlayerIndex].getName() + "'s turn."
+				);
+        });
     }
     
     private void clampToBattleBounds(ImageView sprite, Scene scene) {
@@ -689,6 +705,7 @@ public class BattleManager {
     private void enemyTurn() {
         if (!enemy.isAlive() || !anyPlayerAlive()) {
             return;
+            
         }
         
         BaseCharacter target = chooseBossTarget(); 
