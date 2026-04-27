@@ -143,16 +143,20 @@ public class BattleManager {
     
     private void telegraphAttack(ImageView targetSprite, Runnable onHit) {
 
-        Bounds bounds = targetSprite.getBoundsInParent();
+    	Bounds bounds = targetSprite.localToScene(targetSprite.getBoundsInLocal());
 
         double x = bounds.getMinX() + bounds.getWidth() / 2;
         double y = bounds.getMinY() + bounds.getHeight() / 2;
 
+        
+        double localX = animationLayer.sceneToLocal(x, y).getX();
+        double localY = animationLayer.sceneToLocal(x, y).getY();
+        
         // 🔴 Warning circle
         javafx.scene.shape.Circle warning = new javafx.scene.shape.Circle(80, Color.RED);
         warning.setOpacity(0.3);
-        warning.setLayoutX(x);
-        warning.setLayoutY(y);
+        warning.setLayoutX(localX);
+        warning.setLayoutY(localY);
 
         animationLayer.getChildren().add(warning);
 
