@@ -28,6 +28,9 @@ import javafx.geometry.Bounds;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import java.io.File;
 
 
 public class BattleManager {
@@ -74,6 +77,10 @@ public class BattleManager {
     
     private double p1DirX = 1, p1DirY = 0;
     private double p2DirX = 1, p2DirY = 0;
+    
+    private MediaPlayer battleMusic;
+    private double volume = 0.5;
+    private boolean musicOn = true;
  
     
     private void updateTurnIndicator() {
@@ -448,6 +455,67 @@ public class BattleManager {
         // 5. Return the finished scene
         return battleScene;
     }
+    private void startBattleMusic() {
+        try {
+            File musicFile = new File("sounds/BattleMusic.mp3"); //music credit : Music from Uppbeat https://uppbeat.io/t/zac-tiessen/thunderstorm-in-kyoto License code: 4GTZT2VVAQHL2RTG
+
+            if (!musicFile.exists()) {
+                System.out.println("Music file not found: " + musicFile.getAbsolutePath());
+                return;
+            }
+
+            Media music = new Media(musicFile.toURI().toString());
+
+            battleMusic = new MediaPlayer(music);
+            battleMusic.setCycleCount(MediaPlayer.INDEFINITE); // loop forever
+            battleMusic.setVolume(volume);
+            
+            if (musicOn) {
+            	battleMusic.play();
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to load battle music.");
+            e.printStackTrace();
+        }
+    }
+    private void stopBattleMusic() {
+        if (battleMusic != null) {
+            battleMusic.stop();
+        }
+    }
+    public void setAudioSettings(double volume, boolean musicOn) {
+        this.volume = volume;
+        this.musicOn = musicOn;
+
+        if (battleMusic != null) {
+            battleMusic.setVolume(volume);
+
+            if (musicOn) {
+                battleMusic.play();
+            } else {
+                battleMusic.pause();
+            }
+        }
+    }
+    private void playSoundEffect(String fileName) {
+        try {
+            File soundFile = new File("sounds/" + fileName);
+
+            if (!soundFile.exists()) {
+                System.out.println("Sound effect not found: " + soundFile.getAbsolutePath());
+                return;
+            }
+
+            Media sound = new Media(soundFile.toURI().toString());
+            MediaPlayer soundPlayer = new MediaPlayer(sound);
+            soundPlayer.setVolume(volume);
+            soundPlayer.play();
+
+        } catch (Exception e) {
+            System.out.println("Failed to play sound effect: " + fileName);
+            e.printStackTrace();
+        }
+    }
     
     private void animateBossAttack(ImageView sourceSprite, ImageView targetSprite, Runnable onImpact) {
 
@@ -550,6 +618,7 @@ public class BattleManager {
         this.playerTurn = true;
         this.currentPlayerIndex = this.players[0].isAlive() ? 0 : 1; // Start with player 1 if alive, otherwise player 2
         updateTurnIndicator();
+        startBattleMusic();
 
         battleInfoLabel.setText(
         	    players[0].getName() + " and " + players[1].getName() +
@@ -621,6 +690,7 @@ public class BattleManager {
     	}
     	
         battleInfoLabel.setText(attacker.getName() + " launches an attack!");
+        playSoundEffect("AttackSound.mp3");
 
         // 2. Trigger the Animation
         playSlashProjectile(attackerSprite, bossSprite);
@@ -637,6 +707,7 @@ public class BattleManager {
             if (!enemy.isAlive()) {
                 battleInfoLabel.setText("Victory! The " + enemy.getName() + " has been defeated!");
                 gameStarted = false;
+                stopBattleMusic();
                 showEndGameScreen(true);
             } else {
                 // Logic to switch to player 2 or enemy turn
@@ -677,6 +748,7 @@ public class BattleManager {
 
         battleInfoLabel.setText(currentPlayer.getName() + " heals for " + actualHeal + " HP."); 
         updateBattleUi();
+        playSoundEffect("HealSound.mp3");
 
         nextTurnAfterPlayerAction(); 
     }
@@ -684,6 +756,7 @@ public class BattleManager {
         if (!anyPlayerAlive()) { 
             battleInfoLabel.setText("Both heroes have fallen. Game over."); 
             gameStarted = false; 
+            stopBattleMusic();
             showEndGameScreen(false); 
             return; 
         }
@@ -712,6 +785,7 @@ public class BattleManager {
         if (target == null) { 
             battleInfoLabel.setText("Both heroes have fallen. Game over."); 
             gameStarted = false;
+            stopBattleMusic();
             showEndGameScreen(false);
             return; 
         }
@@ -722,6 +796,7 @@ public class BattleManager {
         
         // Change text to show the boss is attacking
         battleInfoLabel.setText(enemy.getName() + " is firing a beam at " + target.getName() + "!");
+        playSoundEffect("BossAttack.mp3");
 
         // FIRE THE BEAM! 
         telegraphAttack(targetSprite, () -> {

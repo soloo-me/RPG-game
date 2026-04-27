@@ -518,6 +518,9 @@ public class GameMenu extends Application {
         saveBtn.setOnAction(e -> {
             volume = volumeSlider.getValue() / 100.0;
             musicOn = musicCheckbox.isSelected();
+
+            battleManager.setAudioSettings(volume, musicOn);
+
             showAlert("Settings saved.");
         });
 
