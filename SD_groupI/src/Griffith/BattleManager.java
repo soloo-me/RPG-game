@@ -128,7 +128,7 @@ public class BattleManager {
         double dy = (ba.getMinY() + ba.getHeight() / 2) - (bb.getMinY() + bb.getHeight() / 2);
 
         double distance = Math.sqrt(dx * dx + dy * dy);
-        return distance < 3000;	
+        return distance < 2000;	
     }
     
     private void moveBossTowardTarget(ImageView boss, ImageView target) {
@@ -429,7 +429,7 @@ public class BattleManager {
                     p2DirX = 1; p2DirY = 0;
                     clampToScreen(player2Sprite, MIN_X, MAX_X, MIN_Y, MAX_Y);
                 }
-                case O -> tryPlayerAttack(1); // Pass index 1 for Player 2
+                case SHIFT -> tryPlayerAttack(1); // Pass index 1 for Player 2
                 case H -> playerHeal();
                 case P, ESCAPE -> pauseAction.run();
                 default -> { }
