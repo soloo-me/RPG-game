@@ -244,7 +244,7 @@ public class BattleManager {
         ButtonType noButton = new ButtonType("No");
         alert.getButtonTypes().setAll(yesButton, noButton);
 
-        alert.show(); // ✅ NON-BLOCKING
+        alert.show(); 
 
         alert.setOnHidden(event -> {
             ButtonType result = alert.getResult();
@@ -531,7 +531,7 @@ public class BattleManager {
         double endX = targetBounds.getMaxX();
         double endY = targetBounds.getMinY() + (targetBounds.getHeight() / 2);
 
-        int particleCount = 3; // 🔥 number of fire particles
+        int particleCount = 3; //number of fire particles
 
         for (int i = 0; i < particleCount; i++) {
 
@@ -559,12 +559,12 @@ public class BattleManager {
             anim.play();
         }
 
-        // 🔥 VERY IMPORTANT: delay impact until animation finishes
+        //delay impact until animation finishes
         PauseTransition delay = new PauseTransition(Duration.seconds(0.45));
         delay.setOnFinished(e -> {
             onImpact.run();              // damage happens here
             playHitEffect(targetSprite); // shake + flash
-            playExplosionEffect(targetSprite); // 💥 explosion effect
+            playExplosionEffect(targetSprite); // explosion effect
         });
 
         delay.play();
@@ -632,9 +632,9 @@ public class BattleManager {
         
         player1Sprite.setImage(getSpriteForCharacter(players[0]));
         player2Sprite.setImage(getSpriteForCharacter(players[1]));
-        bossSprite.setImage(new Image("file:pictures/Boss.png")); //file name spelling error on purpose because image isn't where it's supposed to be when you run it
+        bossSprite.setImage(new Image("file:pictures/Boss.png")); 
         
-     // 🔥 HARD MODE VISUAL EFFECT
+     //  HARD MODE VISUAL EFFECT
         if (difficulty.equals("HARD")) {
             Glow redGlow = new Glow(0.9);
             bossSprite.setEffect(redGlow);
@@ -683,7 +683,7 @@ public class BattleManager {
     	// Subtract stamina
     	int staminaCost = difficulty.equals("HARD") ? 30 : 20;
     	attacker.setStamina(attacker.getStamina() - staminaCost);
-    	updateBattleUi(); // ✅ RIGHT HERE
+    	updateBattleUi(); //RIGHT HERE
 
     	// Continue with attack
     	ImageView attackerSprite = (currentPlayerIndex == 0) ? player1Sprite : player2Sprite;
@@ -801,10 +801,10 @@ public class BattleManager {
         battleInfoLabel.setText(enemy.getName() + " is firing a beam at " + target.getName() + "!");
         playSoundEffect("BossAttack.mp3");
 
-        // FIRE THE BEAM! 
+        // Fire the beam 
         telegraphAttack(targetSprite, () -> {
 
-            // AFTER warning → fire attack happens
+            // After warning, fire attack happens
             animateBossAttack(bossSprite, targetSprite, () -> {
 
                 int damage = enemy.calculateAttack();
@@ -898,10 +898,10 @@ public class BattleManager {
     }
     private Image getSpriteForCharacter(BaseCharacter character) {
         if (character instanceof Archer) {
-            return new Image("file:pictures/Archer.png"); //file name spelling errors on purpose because we still need to work on the character images
+            return new Image("file:pictures/Archer.png"); 
         }
         if (character instanceof Brawler) {
-            return new Image("file:pictures/Brawler.png");  //when i run the characters are not where they should be
+            return new Image("file:pictures/Brawler.png");  
         }
         if (character instanceof Mage) {
             return new Image("file:pictures/Mage.png");
@@ -934,10 +934,10 @@ public class BattleManager {
 
         for (int i = 0; i < 15; i++) {
 
-            // 🔥 Circle instead of rectangle (key difference)
+            //Circle instead of rectangle (key difference)
             javafx.scene.shape.Circle fire = new javafx.scene.shape.Circle(
                 5 + Math.random() * 6, // random size
-                Color.color(1, Math.random() * 0.5, 0) // red → orange → yellow
+                Color.color(1, Math.random() * 0.5, 0) // red , orange , yellow
             );
 
             fire.setLayoutX(centerX);
@@ -947,18 +947,18 @@ public class BattleManager {
 
             animationLayer.getChildren().add(fire);
 
-            // 🔥 movement (spread + rise like fire)
+            //movement (spread + rise like fire)
             TranslateTransition move = new TranslateTransition(Duration.millis(400), fire);
             move.setByX((Math.random() - 0.5) * 100); // spread sideways
             move.setByY(-50 - Math.random() * 50);    // move UP (important for fire look)
 
-            // 🔥 grow
+            //grow
             javafx.animation.ScaleTransition scale =
                     new javafx.animation.ScaleTransition(Duration.millis(400), fire);
             scale.setToX(2.5);
             scale.setToY(2.5);
 
-            // 🔥 fade out
+            //fade out
             javafx.animation.FadeTransition fade =
                     new javafx.animation.FadeTransition(Duration.millis(400), fire);
             fade.setFromValue(1.0);
