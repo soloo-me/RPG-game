@@ -77,7 +77,10 @@ public class BattleManager {
     
     private double p1DirX = 1, p1DirY = 0;
     private double p2DirX = 1, p2DirY = 0;
+    
     private MediaPlayer battleMusic;
+    private double volume = 0.5;
+    private boolean musicOn = true;
  
     
     private void updateTurnIndicator() {
@@ -454,7 +457,7 @@ public class BattleManager {
     }
     private void startBattleMusic() {
         try {
-            File musicFile = new File("sounds/BattleMusic.mp3");
+            File musicFile = new File("sounds/BattleMusic.mp3"); //music credit : Music from Uppbeat https://uppbeat.io/t/zac-tiessen/thunderstorm-in-kyoto License code: 4GTZT2VVAQHL2RTG
 
             if (!musicFile.exists()) {
                 System.out.println("Music file not found: " + musicFile.getAbsolutePath());
@@ -465,9 +468,11 @@ public class BattleManager {
 
             battleMusic = new MediaPlayer(music);
             battleMusic.setCycleCount(MediaPlayer.INDEFINITE); // loop forever
-            battleMusic.setVolume(0.5); // 50% volume
-            battleMusic.play();
-
+            battleMusic.setVolume(volume);
+            
+            if (musicOn) {
+            	battleMusic.play();
+            }
         } catch (Exception e) {
             System.out.println("Failed to load battle music.");
             e.printStackTrace();
@@ -476,6 +481,20 @@ public class BattleManager {
     private void stopBattleMusic() {
         if (battleMusic != null) {
             battleMusic.stop();
+        }
+    }
+    public void setAudioSettings(double volume, boolean musicOn) {
+        this.volume = volume;
+        this.musicOn = musicOn;
+
+        if (battleMusic != null) {
+            battleMusic.setVolume(volume);
+
+            if (musicOn) {
+                battleMusic.play();
+            } else {
+                battleMusic.pause();
+            }
         }
     }
     
